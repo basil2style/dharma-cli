@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "babel --presets es2015 lib/ --out-dir src/",
-    "test": "npm run compile && mocha --timeout 60000 --compilers js:babel-core/register test/*"
+    "test": "npm run compile && mocha --timeout 60000 --compilers js:babel-core/register test/unit/wallet.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,12 +13,14 @@
     "babel-polyfill": "^6.23.0",
     "bip39": "^2.3.1",
     "dharma": "file:../dharma-js",
+    "ethereumjs-util": "^5.1.2",
     "ethereumjs-wallet": "^0.6.0",
     "fs-extra": "^3.0.1",
     "mocha": "^3.4.2",
     "random-js": "^1.0.8",
     "request-promise": "^4.2.1",
-    "web3": "^0.19.0"
+    "web3": "^0.19.0",
+    "web3-provider-engine": "^13.1.1"
   },
   "devDependencies": {
     "babel-core": "^6.25.0",

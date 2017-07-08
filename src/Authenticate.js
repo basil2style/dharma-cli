@@ -28,7 +28,6 @@ var Authenticate = function () {
     value: async function getAuthKey() {
       try {
         var auth = await _fsExtra2.default.readJson(this.storeFile);
-        // const auth = await fs.readJson(this.storeFile);
         return auth.key;
       } catch (err) {
         throw new _Errors.AuthenticationError('Auth key file does not exist or is unreadable.');
