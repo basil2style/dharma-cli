@@ -11,7 +11,9 @@
   "license": "ISC",
   "dependencies": {
     "babel-polyfill": "^6.23.0",
+    "bip39": "^2.3.1",
     "dharma": "file:../dharma-js",
+    "ethereumjs-wallet": "^0.6.0",
     "fs-extra": "^3.0.1",
     "mocha": "^3.4.2",
     "random-js": "^1.0.8",

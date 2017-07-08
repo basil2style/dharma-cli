@@ -20,6 +20,7 @@ describe('Borrower', () => {
   let borrower;
   let dharma;
   let loan;
+  let winningBids;
 
   afterEach(() => mockyeah.reset());
   after(() => {
@@ -118,7 +119,7 @@ describe('Borrower', () => {
       })
 
       it('should call reviewCallback once the loan is bid on w/ best interest rate', () => {
-        const winningBids = reviewCallback.args[0][1].bids;
+        winningBids = reviewCallback.args[0][1].bids;
         for (let i = 0; i < winningBids.length; i++) {
           expect(winningBids[i].bidder).to.be(expectedWinningBids[i].bidder)
           expect(winningBids[i].amount
@@ -170,9 +171,17 @@ describe('Borrower', () => {
     })
   })
 
-  describe('#acceptTerms(loan)', () => {
-    it('should throw if borrower is not on testnet')
-    it('should throw if borrower account is not unlocked')
-    it('should call loanAccepted once the loan has been accepted')
+  describe('#acceptTerms(loanAccepted)', () => {
+    it('should call loanAccepted once the loan has been accepted', (done) => {
+      web3.eth.getBalance(loan.borrower, (err, balanceBefore) => {
+        borrower.acceptLoanTerms(loan, winningBids, (err, result) => {
+          if (err) console.log(err);
+          web3.eth.getBalance(loan.borrower, (err, balanceAfter) => {
+            expect(balanceAfter.gt(balanceBefore)).to.be(true);
+            done();
+          });
+        })
+      })
+    })
   })
 })

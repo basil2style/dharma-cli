@@ -67,7 +67,6 @@ var Borrower = function () {
   }, {
     key: 'broadcastLoanRequest',
     value: async function broadcastLoanRequest(loan, deployedCallback, reviewCallback) {
-      this.loan = loan;
       var _this = this;
       var createdEvent = await loan.events.created();
       createdEvent.watch(function (err, result) {
@@ -78,21 +77,37 @@ var Borrower = function () {
 
           loan.events.auctionCompleted().then(function (auctionCompletedEvent) {
             auctionCompletedEvent.watch(function (err, result) {
-              if (err) {
-                reviewCallback(err, null);
-              } else {
-                _this.getBestBidSet(loan).then(function (result) {
-                  createdEvent.stopWatching(function (err) {
+              auctionCompletedEvent.stopWatching(function () {
+                if (err) {
+                  reviewCallback(err, null);
+                } else {
+                  _this.getBestBidSet(loan).then(function (result) {
                     if ('error' in result) reviewCallback(result, null);else reviewCallback(null, result);
                   });
-                });
-              }
+                }
+              });
             });
           });
         });
       });
 
       await loan.broadcast();
+    }
+  }, {
+    key: 'acceptLoanTerms',
+    value: async function acceptLoanTerms(loan, bids, callback) {
+      var termBeginEvent = await loan.events.termBegin();
+
+      termBeginEvent.watch(function (err, result) {
+        termBeginEvent.stopWatching(function () {
+          if (err) callback(err, null);else {
+            var blockNumber = result.args.blockNumber;
+            callback(null, result.args.blockNumber);
+          }
+        });
+      });
+
+      await loan.acceptBids(bids);
     }
   }, {
     key: 'getBestBidSet',
