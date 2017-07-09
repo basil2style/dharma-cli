@@ -25,8 +25,8 @@ class LoanUtils {
       },
       attestorFee: this.web3.toWei(0.001, 'ether'),
       defaultRisk: 0.323,
-      auctionPeriodLength: 2,
-      reviewPeriodLength: 60
+      auctionPeriodLength: 5,
+      reviewPeriodLength: 5
     }
 
     for (let key in options) {
@@ -44,7 +44,6 @@ class LoanUtils {
     return new Promise(function (resolve) {
       borrower.broadcastLoanRequest(loan, function(err, result) {
         deployedCallback(err, result);
-
         let bidSet
         if (successful) {
           bidSet = _this.generateTestBids(ACCOUNTS.slice(2,12),
@@ -62,6 +61,7 @@ class LoanUtils {
           return loan.bid(bid.amount, bid.bidder,
             _this.web3.toWei(bid.minInterestRate, 'ether'))
         }));
+
 
         resolve({
           bids: bids,
