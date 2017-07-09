@@ -9,12 +9,17 @@ import Investor from '../../src/Investor';
 import expect from 'expect.js';
 import _ from 'lodash';
 import Util from '../utils/util';
+import mock from 'mock-fs';
 
 const util = new Util(web3);
 const loanUtils = new LoanUtils(web3);
 const decisionEngine = new DecisionEngine();
 const dharma = new Dharma(web3);
 const borrower = new Borrower(dharma);
+
+process.on('unhandledRejection', function onError(err) {
+  console.log(err.stack);
+});
 
 describe("Investor", () => {
   let investor;
@@ -209,6 +214,35 @@ describe("Investor", () => {
           }
         }, 6000)
       })
+
+      it("it should send whatever redeemable value there is to the user", (done) => {
+        borrower.getBestBidSet(loan).then((bestBidSet) => {
+          return loan.acceptBids(bestBidSet.bids)
+        }).then(() => {
+          return dharma.loans.events.valueRedeemed({ uuid: loan.uuid })
+        }).then((valueRedeemedEvent) => {
+          return valueRedeemedEvent.watch(async (err, result) => {
+            done();
+          })
+        }).then(() => {
+          return dharma.loans.events.repayment({ uuid: loan.uuid });
+        }).then((repaymentEvent) => {
+          return repaymentEvent.watch(async (err, result) => {
+            await investor.collect(loan.uuid);
+          })
+        }).then(() => {
+          return dharma.loans.events.termBegin({ uuid: loan.uuid });
+        }).then((termBeginEvent) => {
+          // termBeginEvent.watch(async (err, result) => {
+          //   console.log("term has begun.")
+            // termBeginEvent.stopWatching(async () => {
+              return loan.repay(web3.toWei(1, 'ether'));
+            // })
+            // console.log("ostensibly paid back");
+          // })
+        })
+      })
+
     })
   })
 
@@ -247,32 +281,4 @@ describe("Investor", () => {
     });
   })
 
-  describe("collect(uuid)", () => {
-    let uuid;
-    let loan;
-
-    before(async () => {
-      let portfolio = await investor.loadPortfolio();
-      uuid = _.find(Object.keys(portfolio), (key) => {
-        return portfolio[key].balance != '0'
-      });
-      loan = portfolio[uuid].loan;
-    })
-
-    it("it should send whatever redeemable value there is to the user", (done) => {
-      dharma.loans.events.valueRedeemed({ uuid: uuid }).then((valueRedeemedEvent) => {
-        return valueRedeemedEvent.watch(async (err, result) => {
-          done();
-        })
-      }).then(() => {
-        return dharma.loans.events.repayment({ uuid: uuid });
-      }).then((repaymentEvent) => {
-        return repaymentEvent.watch(async (err, result) => {
-          await investor.collect(uuid);
-        })
-      }).then(() => {
-        return loan.repay(web3.toWei(1, 'ether'));
-      })
-    })
-  })
 })

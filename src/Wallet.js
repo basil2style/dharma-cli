@@ -130,6 +130,18 @@ var Wallet = function () {
         throw new Error("Passphrase is incorrect.");
       }
     }
+  }, {
+    key: 'walletExists',
+    value: async function walletExists() {
+      var storeFile = _os2.default.homedir() + '/.dharma/wallet.json';
+
+      try {
+        var wallets = await _fsExtra2.default.readJson(storeFile);
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
   }]);
 
   return Wallet;

@@ -31,6 +31,7 @@ var Investor = function () {
     this.dharma = dharma;
     this.decisionEngine = decisionEngine;
     this.portfolioStoreFile = _os2.default.homedir() + '/.dharma/portfolio.json';
+    this.portfolio = {};
   }
 
   _createClass(Investor, [{
@@ -73,7 +74,8 @@ var Investor = function () {
     }
   }, {
     key: 'stopDaemon',
-    value: function stopDaemon() {
+    value: async function stopDaemon() {
+      await this.savePortfolio();
       this.dharma.web3.reset();
     }
   }, {
@@ -107,6 +109,8 @@ var Investor = function () {
         _this2.setupReviewStateListeners(loan);
       });
 
+      this.portfolio[loan.uuid].auctionCompletedEvent = auctionCompletedEvent;
+
       this.setupReviewStateListeners(loan);
     }
   }, {
@@ -119,6 +123,10 @@ var Investor = function () {
       termBeginEvent.watch(this.termBeginCallback(loan.uuid, termBeginEvent));
       bidsRejectedEvent.watch(this.bidsRejectedCallback(loan.uuid, bidsRejectedEvent));
       bidsIgnoredEvent.watch(this.bidsIgnoredCallback(loan.uuid, bidsIgnoredEvent));
+
+      this.portfolio[loan.uuid].termBeginEvent = termBeginEvent;
+      this.portfolio[loan.uuid].bidsRejectedEvent = bidsRejectedEvent;
+      this.portfolio[loan.uuid].bidsIgnoredEvent = bidsIgnoredEvent;
     }
   }, {
     key: 'refreshAcceptedState',
@@ -182,6 +190,8 @@ var Investor = function () {
           _this.portfolio[uuid].state = _Constants.ACCEPTED_STATE;
           await _this.savePortfolio();
         });
+        _this.portfolio[uuid].bidsRejectedEvent.stopWatching();
+        _this.portfolio[uuid].bidsIgnoredEvent.stopWatching();
       };
     }
   }, {
@@ -201,6 +211,8 @@ var Investor = function () {
           _this.portfolio[uuid].state = _Constants.REJECTED_STATE;
           await _this.savePortfolio();
         });
+        _this.portfolio[uuid].termBeginEvent.stopWatching();
+        _this.portfolio[uuid].bidsIgnoredEvent.stopWatching();
       };
     }
   }, {
@@ -219,6 +231,8 @@ var Investor = function () {
           _this.portfolio[uuid].state = _Constants.REJECTED_STATE;
           await _this.savePortfolio();
         });
+        _this.portfolio[uuid].termBeginEvent.stopWatching();
+        _this.portfolio[uuid].bidsRejectedEvent.stopWatching();
       };
     }
   }, {
@@ -249,7 +263,8 @@ var Investor = function () {
       var portfolio = {};
 
       Object.keys(this.portfolio).forEach(function (uuid) {
-        var investment = _lodash2.default.omit(this.portfolio[uuid], 'loan');
+        var investment = _lodash2.default.omit(this.portfolio[uuid], 'loan', 'termBeginEvent', 'bidsRejectedEvent', 'bidsIgnoredEvent', 'auctionCompletedEvent');
+
         portfolio[uuid] = _lodash2.default.cloneDeep(investment);
       }.bind(this));
 
@@ -258,7 +273,12 @@ var Investor = function () {
   }, {
     key: 'collect',
     value: async function collect(uuid) {
-      var portfolio = await this.loadPortfolio();
+      var portfolio = void 0;
+      if (_lodash2.default.isEqual(this.portfolio, {})) {
+        portfolio = await this.loadPortfolio();
+      } else {
+        portfolio = this.portfolio;
+      }
 
       var investment = portfolio[uuid];
       await investment.loan.redeemValue(investment.bid.bidder, { from: investment.bid.bidder });

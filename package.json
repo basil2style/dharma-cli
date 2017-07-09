@@ -18,6 +18,7 @@
     "ethereumjs-wallet": "^0.6.0",
     "fs-extra": "^3.0.1",
     "mocha": "^3.4.2",
+    "prompt": "^1.0.0",
     "random-js": "^1.0.8",
     "request-promise": "^4.2.1",
     "web3": "^0.19.0",

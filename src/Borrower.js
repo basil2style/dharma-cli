@@ -113,7 +113,6 @@ var Borrower = function () {
     key: 'getBestBidSet',
     value: async function getBestBidSet(loan) {
       var bids = await loan.getBids();
-
       var sortedBids = _lodash2.default.sortBy(bids, ['minInterestRate']);
       var totalNeeded = loan.principal.plus(loan.attestorFee);
       var totalRaised = new _bignumber2.default(0);
