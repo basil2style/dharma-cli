@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "compile": "babel --presets es2015 lib/ --out-dir src/",
-    "test": "npm run compile && mocha --timeout 15000 --compilers js:babel-core/register test/unit/investor.js"
+    "test": "npm run compile && mocha --timeout 60000 --compilers js:babel-core/register test/unit/investor.js"
   },
   "author": "",
   "license": "ISC",

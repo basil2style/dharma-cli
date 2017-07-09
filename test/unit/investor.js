@@ -18,6 +18,8 @@ const borrower = new Borrower(dharma);
 
 describe("Investor", () => {
   let investor;
+  let errorCallback = sinon.spy();
+  let investmentUuids = [];
 
   it("should load the decision engine from a file w/o throwing", async () => {
     const path = __dirname + '/../utils/DecisionEngine.js';
@@ -40,7 +42,7 @@ describe("Investor", () => {
 
   describe("startDaemon()", () => {
     before(async () => {
-      await investor.startDaemon();
+      await investor.startDaemon(errorCallback);
     })
 
     describe('undesirableLoan', () => {
@@ -117,9 +119,8 @@ describe("Investor", () => {
               done(err)
             }
           }
-          let x = loanUtils.simulateAuction(borrower, loan, onLoanBroadcasted, onLoanReview, done)
-          return
-        }).catch((err) => {
+
+          return loanUtils.simulateAuction(borrower, loan, onLoanBroadcasted, onLoanReview, done);
         });
       })
 
@@ -139,6 +140,8 @@ describe("Investor", () => {
           })
 
           loan.acceptBids(acceptedBids).then(() => {
+            investmentUuids.push(loan.uuid);
+
             setTimeout(() => {
               try {
                 const balanceAfter = web3.eth.getBalance(ACCOUNTS[13]);
@@ -210,14 +213,66 @@ describe("Investor", () => {
   })
 
   describe("stopDaemon()", () => {
-    // describe("desirableLoan");
-  })
+    before(async () => {
+      investor.stopDaemon();
+    })
 
-  describe("getPortfolio()", () => {
-    it('should return portfolio with correct data')
+    describe("desirableLoan", () => {
+      let loan;
+
+      before(async () => {
+        const loanData = await loanUtils.generateSignedLoanData({
+          principal: web3.toWei(4, 'ether'),
+          defaultRisk: web3.toWei(0.85, 'ether')
+        });
+
+        loan = await dharma.loans.create(loanData);
+
+        loan.bid = sinon.spy();
+      })
+
+      it("should not invest in the loan", (done) => {
+        const onLoanBroadcasted = () => { /* do nothing */ }
+        const onLoanReview = () => {
+          try {
+            expect(loan.bid.called).to.be(false);
+            done()
+          } catch (err) {
+            done(err)
+          }
+        }
+
+        borrower.broadcastLoanRequest(loan, onLoanBroadcasted, onLoanReview)
+      })
+    });
   })
 
   describe("collect(uuid)", () => {
-    // describe("it should send whatever redeemable value there is to the user")
+    let uuid;
+    let loan;
+
+    before(async () => {
+      let portfolio = await investor.loadPortfolio();
+      uuid = _.find(Object.keys(portfolio), (key) => {
+        return portfolio[key].balance != '0'
+      });
+      loan = portfolio[uuid].loan;
+    })
+
+    it("it should send whatever redeemable value there is to the user", (done) => {
+      dharma.loans.events.valueRedeemed({ uuid: uuid }).then((valueRedeemedEvent) => {
+        return valueRedeemedEvent.watch(async (err, result) => {
+          done();
+        })
+      }).then(() => {
+        return dharma.loans.events.repayment({ uuid: uuid });
+      }).then((repaymentEvent) => {
+        return repaymentEvent.watch(async (err, result) => {
+          await investor.collect(uuid);
+        })
+      }).then(() => {
+        return loan.repay(web3.toWei(1, 'ether'));
+      })
+    })
   })
 })

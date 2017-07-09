@@ -1,0 +1,8 @@
+"use strict";
+
+module.exports = {
+  AUCTION_STATE: 0,
+  REVIEW_STATE: 1,
+  ACCEPTED_STATE: 2,
+  REJECTED_STATE: 3
+};
