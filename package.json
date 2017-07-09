@@ -1,11 +1,15 @@
 {
   "name": "dharma-cli",
+  "bin": {
+    "dharma": "./bin/index.js"
+  },
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./bin/index.js",
   "scripts": {
     "compile": "babel --presets es2015 lib/ --out-dir src/",
-    "test": "npm run compile && mocha --timeout 60000 --compilers js:babel-core/register test/unit/investor.js"
+    "test": "npm run compile && mocha --timeout 60000 --compilers js:babel-core/register test/unit/investor.js",
+    "borrow": "npm run compile && dharma borrow"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +21,7 @@
     "ethereumjs-util": "^5.1.2",
     "ethereumjs-wallet": "^0.6.0",
     "fs-extra": "^3.0.1",
+    "inquirer": "^3.2.0",
     "mocha": "^3.4.2",
     "prompt": "^1.0.0",
     "random-js": "^1.0.8",

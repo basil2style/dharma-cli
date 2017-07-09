@@ -48,6 +48,16 @@ var CLI = function () {
       console.log("here");
     }
   }], [{
+    key: 'entry',
+    value: function entry(args) {
+      _commander2.default.version('0.1.0').command('borrow [amount]', "request an instant loan in Ether.").parse(args);
+    }
+  }, {
+    key: 'borrow',
+    value: function borrow(args) {
+      console.log("here");
+    }
+  }, {
     key: 'init',
     value: async function init() {
       var walletExists = await _Wallet2.default.walletExists();
@@ -75,3 +85,5 @@ var CLI = function () {
 
   return CLI;
 }();
+
+module.exports = CLI;
