@@ -55,6 +55,7 @@ var Wallet = function () {
     key: 'getMnemonic',
     value: function getMnemonic() {
       if (!this.mnemonic) throw new Error("Mnemonics cannot be retrieved from local wallets.");
+      return this.mnemonic;
     }
   }, {
     key: 'getAddress',
@@ -67,6 +68,11 @@ var Wallet = function () {
     value: function getPrivateKey() {
       var privKey = this.ethJSWallet.getPublicKey();
       return _ethereumjsUtil2.default.bufferToHex(privKey);
+    }
+  }, {
+    key: 'getSubprovider',
+    value: function getSubprovider() {
+      return new _providerEngine2.default(this.ethJSWallet, {});
     }
   }, {
     key: 'save',
@@ -86,11 +92,6 @@ var Wallet = function () {
 
       await _fsExtra2.default.outputJson(this.storeFile, wallets);
     }
-  }, {
-    key: 'getSubprovider',
-    value: function getSubprovider() {
-      return new _providerEngine2.default(this.ethJSWallet, {});
-    }
   }], [{
     key: 'generate',
     value: async function generate(passphrase) {
@@ -109,10 +110,9 @@ var Wallet = function () {
       return wallet;
     }
   }, {
-    key: 'getWallet',
-    value: async function getWallet(address, passphrase) {
+    key: 'recoverWallet',
+    value: async function recoverWallet(mnemonic) {
       var storeFile = _os2.default.homedir() + '/.dharma/wallet.json';
-      address = _Util2.default.stripZeroEx(address);
 
       var wallets = void 0;
       try {
@@ -121,7 +121,33 @@ var Wallet = function () {
         throw new Error('No such wallet exists.');
       }
 
-      if (!(address in wallets)) throw new Error('No such wallet exists.');
+      var address = Object.keys(wallets)[0];
+
+      var seed = _bip2.default.mnemonicToSeed(mnemonic);
+      var masterNode = _hdkey2.default.fromMasterSeed(seed);
+      var node = masterNode.derivePath(DERIVATION_PATH);
+
+      var ethJSWallet = node.getWallet();
+      var wallet = new Wallet(ethJSWallet, mnemonic);
+      var walletAddress = _Util2.default.stripZeroEx(wallet.getAddress());
+
+      if (walletAddress !== address) throw new Error('Incorrect seed phrase.');
+
+      return wallet;
+    }
+  }, {
+    key: 'getWallet',
+    value: async function getWallet(passphrase) {
+      var storeFile = _os2.default.homedir() + '/.dharma/wallet.json';
+
+      var wallets = void 0;
+      try {
+        wallets = await _fsExtra2.default.readJson(storeFile);
+      } catch (err) {
+        throw new Error('No such wallet exists.');
+      }
+
+      var address = Object.keys(wallets)[0];
 
       try {
         var ethJSWallet = _ethereumjsWallet2.default.fromV3(wallets[address], passphrase);

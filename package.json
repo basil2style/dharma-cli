@@ -17,6 +17,7 @@
     "babel-polyfill": "^6.23.0",
     "bignumber.js": "^4.0.2",
     "bip39": "^2.3.1",
+    "cli-spinner": "^0.2.6",
     "dharma": "file:../dharma-js",
     "ethereumjs-util": "^5.1.2",
     "ethereumjs-wallet": "^0.6.0",
@@ -26,6 +27,7 @@
     "prompt": "^1.0.0",
     "random-js": "^1.0.8",
     "request-promise": "^4.2.1",
+    "rx-lite-aggregates": "^4.0.8",
     "web3": "^0.19.0",
     "web3-provider-engine": "^13.1.1"
   },

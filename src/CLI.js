@@ -22,6 +22,10 @@ var _web3ProviderEngine = require('web3-provider-engine');
 
 var _web3ProviderEngine2 = _interopRequireDefault(_web3ProviderEngine);
 
+var _rpc = require('web3-provider-engine/subproviders/rpc.js');
+
+var _rpc2 = _interopRequireDefault(_rpc);
+
 var _Borrower = require('./Borrower');
 
 var _Borrower2 = _interopRequireDefault(_Borrower);
@@ -29,6 +33,14 @@ var _Borrower2 = _interopRequireDefault(_Borrower);
 var _commander = require('commander');
 
 var _commander2 = _interopRequireDefault(_commander);
+
+var _inquirer = require('inquirer');
+
+var _inquirer2 = _interopRequireDefault(_inquirer);
+
+var _prompts = require('./cli/prompts');
+
+var _cliSpinner = require('cli-spinner');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47,19 +59,42 @@ var CLI = function () {
     value: function borrow(amount, address) {
       console.log("here");
     }
+  }, {
+    key: 'borrowFlow',
+    value: async function borrowFlow() {
+      var loader = new _cliSpinner.Spinner('Requesting attestation from Dharma Labs Inc.');
+      loader.setSpinnerString(19);
+      loader.start();
+      //
+      // try {
+      //   this.borrower.requestAttestion
+      // }
+    }
   }], [{
     key: 'entry',
     value: function entry(args) {
-      _commander2.default.version('0.1.0').command('borrow [amount]', "request an instant loan in Ether.").parse(args);
+      _commander2.default.version('0.1.0').command('borrow <amount>', "request an instant loan in Ether.").parse(args);
     }
   }, {
     key: 'borrow',
-    value: function borrow(args) {
-      console.log("here");
+    value: async function borrow(args) {
+      var amount = void 0;
+      _commander2.default.version('0.1.0').usage('borrow [options] <amount>').option('-u, --unit [unit]', 'Specifies the unit of ether (e.g. wei, finney, szabo)', /^(wei|kwei|ada|mwei|babbage|gwei|shannon|szabo|finney|ether|kether|grand|einstein|mether|gether|tether|small)$/i, 'ether').arguments('<amount>').action(function (_amount) {
+        amount = _amount;
+      });
+
+      _commander2.default.parse(args);
+
+      if (!amount) {
+        _commander2.default.help();
+      }
+
+      var cli = await CLI.init();
+      await cli.borrowFlow(amount, _commander2.default.unit);
     }
   }, {
     key: 'init',
-    value: async function init() {
+    value: async function init(amount, unit) {
       var walletExists = await _Wallet2.default.walletExists();
       var wallet = void 0;
       if (walletExists) {
@@ -72,14 +107,89 @@ var CLI = function () {
       var web3 = new _web2.default(engine);
 
       engine.addProvider(wallet.getSubprovider());
-      engine.addProvider(new RpcSubprovider({
-        rpcUrl: 'https://localhost:8546'
+      engine.addProvider(new _rpc2.default({
+        rpcUrl: 'http://localhost:8546'
       }));
       engine.start();
 
       var dharma = new _dharma2.default(web3);
 
       return new CLI(dharma);
+    }
+  }, {
+    key: 'loadWalletFlow',
+    value: async function loadWalletFlow() {
+      var choice = await _inquirer2.default.prompt([_prompts.WalletFlow.unlockOptions]);
+
+      var wallet = void 0;
+      if (choice.unlockChoice === 'Enter passphrase') {
+        while (true) {
+          var answer = await _inquirer2.default.prompt([_prompts.WalletFlow.enterPassphrase]);
+
+          try {
+            wallet = await _Wallet2.default.getWallet(answer.passphrase);
+            console.log("Wallet unlocked!");
+            break;
+          } catch (err) {
+            console.error("Incorrect passphrase.  Please try again.");
+          }
+        }
+      } else {
+        while (true) {
+          var _ref = await _inquirer2.default.prompt([_prompts.WalletFlow.enterMnemonic]),
+              mnemonic = _ref.mnemonic;
+
+          try {
+            wallet = await _Wallet2.default.recoverWallet(mnemonic);
+            console.log("Wallet has been recovered!");
+            break;
+          } catch (err) {
+            console.log(err);
+            console.error("Incorrect seed phrase.  Please try again.");
+          }
+        }
+
+        var passphrase = await this.passphraseFlow();
+        await wallet.save(passphrase);
+
+        console.log("Wallet saved and re-encrypted with new passphrase.");
+      }
+
+      return wallet;
+    }
+  }, {
+    key: 'passphraseFlow',
+    value: async function passphraseFlow() {
+      var passphrase = void 0;
+      while (!passphrase) {
+        var passphraseAnswers = await _inquirer2.default.prompt([_prompts.WalletFlow.choosePassphrase, _prompts.WalletFlow.confirmPassphrase]);
+
+        if (passphraseAnswers.passphrase !== passphraseAnswers.passphraseConfirmation) {
+          console.error("Confirmation does not match passphrase, try again.");
+        } else {
+          passphrase = passphraseAnswers.passphrase;
+        }
+      }
+
+      return passphrase;
+    }
+  }, {
+    key: 'generateWalletFlow',
+    value: async function generateWalletFlow() {
+      await _inquirer2.default.prompt([_prompts.WalletFlow.start]);
+
+      var passphrase = await this.passphraseFlow();
+
+      var wallet = await _Wallet2.default.generate(passphrase);
+
+      var address = wallet.getAddress();
+      var mnemonic = wallet.getMnemonic();
+
+      console.log("You've generated a local wallet with the following address: " + address);
+      console.log("Please write down the following recovery phrase and store it in " + "a safe place -- if you forget your passphrase, you will not be able to " + "recover your funds without the recovery phrase");
+      console.log(mnemonic);
+
+      return wallet;
     }
   }]);
 
