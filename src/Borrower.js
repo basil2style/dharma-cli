@@ -24,38 +24,59 @@ var _Util = require('./Util');
 
 var _Util2 = _interopRequireDefault(_Util);
 
+var _Config = require('./Config');
+
+var _Config2 = _interopRequireDefault(_Config);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var RAA_ROOT = 'https://risk.dharma.io';
+var MIN_GAS_REQUIRED = 500000;
+var GAS_PRICE_IN_GWEI = 22;
 
 var Borrower = function () {
   function Borrower(dharma) {
-    var raaRoot = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : RAA_ROOT;
-
     _classCallCheck(this, Borrower);
 
     this.dharma = dharma;
+    this.web3 = dharma.web3;
     this.auth = new _Authenticate2.default();
-    this.raaUri = raaRoot;
+    this.raaUri = _Config2.default.RAA_API_ROOT;
   }
 
   _createClass(Borrower, [{
     key: 'requestAttestation',
-    value: async function requestAttestation(borrower, amount) {
-      var authKey = await this.auth.getAuthKey();
+    value: async function requestAttestation(borrowerAddress, amount) {
+      var authenticate = new _Authenticate2.default();
+      var authKey = await authenticate.getAuthKey();
 
-      var params = this._getRequestParams('/requestLoan', { authKey: authKey });
-      var response = await (0, _requestPromise2.default)(params);
-      if ('error' in response) {
-        switch (response.error) {
-          case 'INVALID_AUTH_TOKEN':
-            throw new _Errors.AuthenticationError('Invalid Authentication Token');
-          case 'LOAN_REQUEST_REJECTED':
-            throw new _Errors.RejectionError('Your loan request has been rejected.');
-          default:
-            throw new Error(response.error);
+      var params = this._getRequestParams('/requestLoan', {
+        authKey: authKey,
+        address: borrowerAddress
+      });
+
+      var response = void 0;
+      try {
+        response = await (0, _requestPromise2.default)(params);
+      } catch (err) {
+        if (err.name === 'StatusCodeError') {
+          switch (err.response.body.error) {
+            case 'INVALID_AUTH_TOKEN':
+              throw new _Errors.AuthenticationError('Invalid Authentication Token');
+              break;
+            case 'INVALID_ADDRESS':
+              throw new Error("Borrower address is invalid.");
+              break;
+            case 'LOAN_REQUEST_REJECTED':
+              throw new _Errors.RejectionError('Your loan request has been rejected.');
+              break;
+
+            default:
+              throw new Error(response.error);
+          }
+        } else {
+          throw err;
         }
       }
 
@@ -63,6 +84,38 @@ var Borrower = function () {
       await loan.verifyAttestation();
 
       return loan;
+    }
+  }, {
+    key: 'requestDeploymentStipend',
+    value: async function requestDeploymentStipend(address) {
+      var authenticate = new _Authenticate2.default();
+      var authKey = await authenticate.getAuthKey();
+
+      var params = this._getRequestParams('/requestDeploymentStipend', {
+        authKey: authKey,
+        address: address
+      });
+
+      var response = await (0, _requestPromise2.default)(params);
+
+      if ('error' in response) {
+        switch (response.error) {
+          case 'INVALID_AUTH_TOKEN':
+            throw new _Errors.AuthenticationError('Invalid Authentication Token');
+            break;
+          case 'INVALID_ADDRESS':
+            throw new Error("Borrower address is invalid.");
+            break;
+          case 'STIPEND_REQUEST_REJECTED':
+            throw new _Errors.RejectionError('Your deployment stipdend request has been rejected.');
+            break;
+
+          default:
+            throw new Error(response.error);
+        }
+      }
+
+      return response.txHash;
     }
   }, {
     key: 'broadcastLoanRequest',
@@ -146,16 +199,29 @@ var Borrower = function () {
       }
     }
   }, {
+    key: 'hasMinBalanceRequired',
+    value: async function hasMinBalanceRequired(address) {
+      return new Promise(function (resolve, reject) {
+        this.web3.eth.getBalance(address, function (err, balance) {
+          if (err) {
+            reject(err);
+          } else {
+            if (balance.lt(this.web3.toWei(MIN_GAS_REQUIRED * GAS_PRICE_IN_GWEI, 'gwei'))) {
+              resolve(false);
+            } else {
+              resolve(true);
+            }
+          }
+        }.bind(this));
+      }.bind(this));
+    }
+  }, {
     key: '_getRequestParams',
-    value: function _getRequestParams(endpoint) {
-      var queries = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
+    value: function _getRequestParams(endpoint, params) {
       return {
+        method: 'POST',
         uri: this.raaUri + endpoint,
-        qs: queries,
-        headers: {
-          'User-Agent': 'Request-Promise'
-        },
+        body: params,
         json: true
       };
     }

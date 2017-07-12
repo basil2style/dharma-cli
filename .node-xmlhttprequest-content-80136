@@ -1,1 +1,0 @@
-{"err":null,"data":{"statusCode":200,"headers":{"access-control-allow-headers":"Origin, X-Requested-With, Content-Type, Accept","access-control-allow-origin":"*","access-control-allow-methods":"*","content-type":"application/json","date":"Thu, 06 Jul 2017 05:07:10 GMT","connection":"close","transfer-encoding":"chunked"},"text":"{\"id\":9,\"jsonrpc\":\"2.0\",\"result\":true}"}}

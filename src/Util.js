@@ -14,6 +14,26 @@ var Util = function () {
     value: function stripZeroEx(data) {
       if (data.slice(0, 2) === '0x') return data.slice(2);else return data;
     }
+  }, {
+    key: 'transactionMined',
+    value: async function transactionMined(web3, txHash) {
+      return new Promise(function (resolve, reject) {
+        var filter = web3.eth.filter('latest');
+        filter.watch(function (err, block) {
+          if (err) {
+            reject(err);
+          } else {
+            web3.eth.getTransaction(txHash, function (err, tx) {
+              if (tx.blockNumber) {
+                filter.stopWatching(function () {
+                  resolve(tx);
+                });
+              }
+            });;
+          }
+        });
+      });
+    }
   }]);
 
   return Util;

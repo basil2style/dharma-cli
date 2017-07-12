@@ -38,5 +38,13 @@ module.exports = {
       name: 'mnemonic',
       message: 'Please enter the 12 word recovery phrase you were given when you ' + "first generated the wallet:"
     }
+  },
+
+  AuthenticateFlow: {
+    start: {
+      type: 'confirm',
+      name: 'confirmStart',
+      message: 'You need to authenticate your account in order to request ' + "credit on the Dharma Loan Network.  Let's get started."
+    }
   }
 };

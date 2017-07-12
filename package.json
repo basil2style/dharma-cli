@@ -9,7 +9,8 @@
   "scripts": {
     "compile": "babel --presets es2015 lib/ --out-dir src/",
     "test": "npm run compile && mocha --timeout 60000 --compilers js:babel-core/register test/unit/investor.js",
-    "borrow": "npm run compile && dharma borrow"
+    "borrow": "npm run compile && ENV=development dharma borrow",
+    "authenticate": "npm run compile && ENV=development dharma authenticate"
   },
   "author": "",
   "license": "ISC",
@@ -24,6 +25,7 @@
     "fs-extra": "^3.0.1",
     "inquirer": "^3.2.0",
     "mocha": "^3.4.2",
+    "opn": "^5.1.0",
     "prompt": "^1.0.0",
     "random-js": "^1.0.8",
     "request-promise": "^4.2.1",
