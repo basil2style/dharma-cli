@@ -42,10 +42,6 @@ var _Authenticate = require('./Authenticate');
 
 var _Authenticate2 = _interopRequireDefault(_Authenticate);
 
-var _commander = require('commander');
-
-var _commander2 = _interopRequireDefault(_commander);
-
 var _commandLineCommands2 = require('command-line-commands');
 
 var _commandLineCommands3 = _interopRequireDefault(_commandLineCommands2);
@@ -200,11 +196,7 @@ var CLI = function () {
     key: 'investFlow',
     value: async function investFlow(decisionEnginePath) {
       try {
-        process.on('uncaughtException', function (err) {
-          console.log(err.stack);
-        });
         var investor = await _Investor2.default.fromPath(this.dharma, this.wallet, decisionEnginePath);
-        console.log("here");
 
         var errorCallback = function errorCallback(err) {
           console.log(err);
@@ -221,6 +213,7 @@ var CLI = function () {
 
         process.on('SIGINT', async function (options, err) {
           await investor.stopDaemon();
+          process.exit();
         }.bind(null, { exit: true }));
       } catch (err) {
         console.error(err);
