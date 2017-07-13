@@ -39,16 +39,18 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var DERIVATION_PATH = "m/44'/60'/0'/0";
+var DEFAULT_STORE_FILE = _os2.default.homedir() + '/.dharma/wallet.json';
 
 var Wallet = function () {
   function Wallet(ethJSWallet) {
     var mnemonic = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var storeFile = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : DEFAULT_STORE_FILE;
 
     _classCallCheck(this, Wallet);
 
     this.mnemonic = mnemonic;
     this.ethJSWallet = ethJSWallet;
-    this.storeFile = _os2.default.homedir() + '/.dharma/wallet.json';
+    this.storeFile = storeFile;
   }
 
   _createClass(Wallet, [{
@@ -94,7 +96,7 @@ var Wallet = function () {
     }
   }], [{
     key: 'generate',
-    value: async function generate(passphrase) {
+    value: async function generate(passphrase, walletStoreFile) {
       if (!passphrase) throw new Error('User must enter passphrase.');
 
       var mnemonic = _bip2.default.generateMnemonic();
@@ -103,7 +105,7 @@ var Wallet = function () {
       var node = masterNode.derivePath(DERIVATION_PATH);
 
       var ethJSWallet = node.getWallet();
-      var wallet = new Wallet(ethJSWallet, mnemonic);
+      var wallet = new Wallet(ethJSWallet, mnemonic, walletStoreFile);
 
       await wallet.save(passphrase);
 
@@ -112,7 +114,7 @@ var Wallet = function () {
   }, {
     key: 'recoverWallet',
     value: async function recoverWallet(mnemonic) {
-      var storeFile = _os2.default.homedir() + '/.dharma/wallet.json';
+      var storeFile = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DEFAULT_STORE_FILE;
 
       var wallets = void 0;
       try {
@@ -128,7 +130,7 @@ var Wallet = function () {
       var node = masterNode.derivePath(DERIVATION_PATH);
 
       var ethJSWallet = node.getWallet();
-      var wallet = new Wallet(ethJSWallet, mnemonic);
+      var wallet = new Wallet(ethJSWallet, mnemonic, storeFile);
       var walletAddress = _Util2.default.stripZeroEx(wallet.getAddress());
 
       if (walletAddress !== address) throw new Error('Incorrect seed phrase.');
@@ -138,7 +140,7 @@ var Wallet = function () {
   }, {
     key: 'getWallet',
     value: async function getWallet(passphrase) {
-      var storeFile = _os2.default.homedir() + '/.dharma/wallet.json';
+      var storeFile = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : DEFAULT_STORE_FILE;
 
       var wallets = void 0;
       try {
@@ -159,7 +161,7 @@ var Wallet = function () {
   }, {
     key: 'walletExists',
     value: async function walletExists() {
-      var storeFile = _os2.default.homedir() + '/.dharma/wallet.json';
+      var storeFile = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : DEFAULT_STORE_FILE;
 
       try {
         var wallets = await _fsExtra2.default.readJson(storeFile);

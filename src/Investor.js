@@ -20,16 +20,18 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+var _babelCore = require('babel-core');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Investor = function () {
-  function Investor(dharma, decisionEngine) {
+  function Investor(dharma, wallet, DecisionEngine) {
     _classCallCheck(this, Investor);
 
     this.dharma = dharma;
-    this.decisionEngine = decisionEngine;
+    this.decisionEngine = new DecisionEngine(dharma.web3, wallet);
     this.portfolioStoreFile = _os2.default.homedir() + '/.dharma/portfolio.json';
     this.portfolio = {};
   }
@@ -47,17 +49,21 @@ var Investor = function () {
       this.createdEvent.watch(async function (err, result) {
         var loan = await this.dharma.loans.get(result.args.uuid);
         var bid = await this.decisionEngine.decide(loan);
+
         if (bid) {
           var schema = new _BidSchema2.default(this.dharma.web3);
-
+          console.log(errorCallback);
+          console.log("about to bid");
           try {
             schema.validate(bid);
             await loan.bid(bid.amount, bid.bidder, bid.minInterestRate);
           } catch (err) {
+            console.log(err);
+            console.log(errorCallback);
             errorCallback(err);
             return;
           }
-
+          console.log('made it here');
           this.portfolio[loan.uuid] = {
             loan: loan,
             bid: bid,
@@ -76,7 +82,7 @@ var Investor = function () {
     key: 'stopDaemon',
     value: async function stopDaemon() {
       await this.savePortfolio();
-      this.dharma.web3.reset();
+      this.dharma.web3.reset(function () {});
     }
   }, {
     key: 'refreshInvestment',
@@ -190,8 +196,8 @@ var Investor = function () {
           _this.portfolio[uuid].state = _Constants.ACCEPTED_STATE;
           await _this.savePortfolio();
         });
-        _this.portfolio[uuid].bidsRejectedEvent.stopWatching();
-        _this.portfolio[uuid].bidsIgnoredEvent.stopWatching();
+        _this.portfolio[uuid].bidsRejectedEvent.stopWatching(function () {});
+        _this.portfolio[uuid].bidsIgnoredEvent.stopWatching(function () {});
       };
     }
   }, {
@@ -211,8 +217,8 @@ var Investor = function () {
           _this.portfolio[uuid].state = _Constants.REJECTED_STATE;
           await _this.savePortfolio();
         });
-        _this.portfolio[uuid].termBeginEvent.stopWatching();
-        _this.portfolio[uuid].bidsIgnoredEvent.stopWatching();
+        _this.portfolio[uuid].termBeginEvent.stopWatching(function () {});
+        _this.portfolio[uuid].bidsIgnoredEvent.stopWatching(function () {});
       };
     }
   }, {
@@ -231,8 +237,8 @@ var Investor = function () {
           _this.portfolio[uuid].state = _Constants.REJECTED_STATE;
           await _this.savePortfolio();
         });
-        _this.portfolio[uuid].termBeginEvent.stopWatching();
-        _this.portfolio[uuid].bidsRejectedEvent.stopWatching();
+        _this.portfolio[uuid].termBeginEvent.stopWatching(function () {});
+        _this.portfolio[uuid].bidsRejectedEvent.stopWatching(function () {});
       };
     }
   }, {
@@ -285,15 +291,27 @@ var Investor = function () {
     }
   }], [{
     key: 'fromPath',
-    value: async function fromPath(dharma, engineFilePath) {
+    value: async function fromPath(dharma, wallet, engineFilePath) {
       try {
-        var decisionEngine = await Promise.resolve().then(function () {
-          return require('' + engineFilePath);
-        });
-        return new Investor(dharma, decisionEngine);
+        var path = process.cwd() + '/' + engineFilePath;
+
+        var _transformFileSync = (0, _babelCore.transformFileSync)(path),
+            code = _transformFileSync.code;
+
+        var decisionEngine = Investor._requireFromString(code, path);
+        return new Investor(dharma, wallet, decisionEngine);
       } catch (err) {
+        console.log(err);
         throw new Error("Decision engine file not found.");
       }
+    }
+  }, {
+    key: '_requireFromString',
+    value: function _requireFromString(src, filename) {
+      var Module = module.constructor;
+      var m = new Module();
+      m._compile(src, filename);
+      return m.exports;
     }
   }]);
 

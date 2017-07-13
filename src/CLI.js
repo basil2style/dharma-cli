@@ -34,6 +34,10 @@ var _Borrower = require('./Borrower');
 
 var _Borrower2 = _interopRequireDefault(_Borrower);
 
+var _Investor = require('./Investor');
+
+var _Investor2 = _interopRequireDefault(_Investor);
+
 var _Authenticate = require('./Authenticate');
 
 var _Authenticate2 = _interopRequireDefault(_Authenticate);
@@ -138,8 +142,6 @@ var CLI = function () {
   }, {
     key: 'loanReviewFlow',
     value: function loanReviewFlow(loan, loader) {
-      var _this = this;
-
       return async function (err, bestBidSet) {
         loader.stop(true);
 
@@ -159,14 +161,14 @@ var CLI = function () {
           loan.interestRate = bestBidSet.interestRate;
           var decorator = new _LoanDecorator2.default(loan);
 
-          console.log("Your loan request of " + amount + " " + unit + " has been" + " approved at a " + decorator.interestRate() + " simple interest rate.");
+          console.log("Your loan request of " + decorator.principal() + " ether has been" + " approved at a " + decorator.interestRate() + " simple interest rate.");
           var answer = await _inquirer2.default.prompt([_prompts.BorrowFlow.reviewLoanTerms]);
 
           if (answer.choice === 'Accept') {
             loader.setSpinnerTitle("Accepting loan terms");
             loader.start();
 
-            await _this.borrower.acceptBids(loan, bestBidSet.bids);
+            await loan.acceptBids(bestBidSet.bids);
             loader.stop(true);
 
             console.log("Your loan has been funded and " + decorator.principal() + " ether has been transferred to " + "address " + loan.borrower);
@@ -176,7 +178,7 @@ var CLI = function () {
             loader.setSpinnerTitle("Rejecting loan terms");
             loader.start();
 
-            await _this.borrower.rejectBids(loan);
+            await loan.rejectBids();
             loader.stop(true);
 
             console.log("You've rejected the loan terms presented to you.");
@@ -185,6 +187,37 @@ var CLI = function () {
           }
         }
       };
+    }
+  }, {
+    key: 'investFlow',
+    value: async function investFlow(decisionEnginePath) {
+      try {
+        process.on('uncaughtException', function (err) {
+          console.log(err.stack);
+        });
+        var investor = await _Investor2.default.fromPath(this.dharma, this.wallet, decisionEnginePath);
+        console.log("here");
+
+        var errorCallback = function errorCallback(err) {
+          console.log(err);
+          process.exit();
+        };
+
+        try {
+          await investor.startDaemon(errorCallback);
+        } catch (err) {
+          console.error(err.stack);
+        }
+
+        console.log("Auto-investing in loans from public key " + this.wallet.getAddress());
+
+        process.on('SIGINT', async function (options, err) {
+          await investor.stopDaemon();
+        }.bind(null, { exit: true }));
+      } catch (err) {
+        console.error(err);
+        process.exit();
+      }
     }
   }], [{
     key: 'authenticate',
@@ -213,13 +246,16 @@ var CLI = function () {
   }, {
     key: 'entry',
     value: function entry(args) {
-      _commander2.default.version('0.1.0').command('borrow <amount>', "request an instant loan in Ether.").command('authenticate <token>', "authenticate yourself in order to borrow.").parse(args);
+      _commander2.default.version('0.1.0').command('borrow <amount>', "request an instant loan in Ether.").command('invest <decisionEnginePath>', "auto-invest in loans according to programmable criteria.").command('authenticate <token>', "authenticate yourself in order to borrow.").parse(args);
     }
   }, {
     key: 'borrow',
     value: async function borrow(args) {
       var amount = void 0;
-      _commander2.default.version('0.1.0').usage('borrow [options] <amount>').option('-u, --unit [unit]', 'Specifies the unit of ether (e.g. wei, finney, szabo)', /^(wei|kwei|ada|mwei|babbage|gwei|shannon|szabo|finney|ether|kether|grand|einstein|mether|gether|tether|small)$/i, 'ether').arguments('<amount>').action(function (_amount) {
+      _commander2.default.version('0.1.0').option('-u, --unit [unit]', 'Specifies the unit of ether (e.g. wei, finney, szabo)', /^(wei|kwei|ada|mwei|babbage|gwei|shannon|szabo|finney|ether|kether|grand|einstein|mether|gether|tether|small)$/i).option('-w, --wallet <walletFilePath>', 'Specifies the path from which to load and save the wallet file store.').arguments('[options] <amount>').action(function (options, wallet, _amount, another) {
+        console.log(options);
+        console.log(wallet);
+        console.log(another);
         amount = _amount;
       });
 
@@ -228,19 +264,37 @@ var CLI = function () {
       if (!amount) {
         _commander2.default.help();
       }
-
-      var cli = await CLI.init();
+      console.log("path received: " + _commander2.default.unit);
+      var cli = await CLI.init(_commander2.default.wallet);
       await cli.borrowFlow(amount, _commander2.default.unit);
     }
   }, {
+    key: 'invest',
+    value: async function invest(args) {
+      var decisionEnginePath = void 0;
+      _commander2.default.version('0.1.0').usage('invest <decisionEnginePath>').arguments('<decisionEnginePath>').action(function (path) {
+        decisionEnginePath = path;
+      });
+
+      _commander2.default.parse(args);
+
+      if (!decisionEnginePath) {
+        _commander2.default.help();
+      }
+
+      var cli = await CLI.init();
+      await cli.investFlow(decisionEnginePath);
+    }
+  }, {
     key: 'init',
-    value: async function init(amount, unit) {
-      var walletExists = await _Wallet2.default.walletExists();
+    value: async function init(walletStoreFile) {
+      console.log(walletStoreFile);
+      var walletExists = await _Wallet2.default.walletExists(walletStoreFile);
       var wallet = void 0;
       if (walletExists) {
-        wallet = await CLI.loadWalletFlow();
+        wallet = await CLI.loadWalletFlow(walletStoreFile);
       } else {
-        wallet = await CLI.generateWalletFlow();
+        wallet = await CLI.generateWalletFlow(walletStoreFile);
       }
 
       var engine = new _web3ProviderEngine2.default();
@@ -256,7 +310,7 @@ var CLI = function () {
     }
   }, {
     key: 'loadWalletFlow',
-    value: async function loadWalletFlow() {
+    value: async function loadWalletFlow(walletStoreFile) {
       var choice = await _inquirer2.default.prompt([_prompts.WalletFlow.unlockOptions]);
 
       var wallet = void 0;
@@ -265,7 +319,7 @@ var CLI = function () {
           var answer = await _inquirer2.default.prompt([_prompts.WalletFlow.enterPassphrase]);
 
           try {
-            wallet = await _Wallet2.default.getWallet(answer.passphrase);
+            wallet = await _Wallet2.default.getWallet(answer.passphrase, walletStoreFile);
             console.log("Wallet unlocked!");
             break;
           } catch (err) {
@@ -278,7 +332,7 @@ var CLI = function () {
               mnemonic = _ref.mnemonic;
 
           try {
-            wallet = await _Wallet2.default.recoverWallet(mnemonic);
+            wallet = await _Wallet2.default.recoverWallet(mnemonic, walletStoreFile);
             console.log("Wallet has been recovered!");
             break;
           } catch (err) {
@@ -313,12 +367,12 @@ var CLI = function () {
     }
   }, {
     key: 'generateWalletFlow',
-    value: async function generateWalletFlow() {
+    value: async function generateWalletFlow(walletStoreFile) {
       await _inquirer2.default.prompt([_prompts.WalletFlow.start]);
 
       var passphrase = await this.passphraseFlow();
 
-      var wallet = await _Wallet2.default.generate(passphrase);
+      var wallet = await _Wallet2.default.generate(passphrase, walletStoreFile);
 
       var address = wallet.getAddress();
       var mnemonic = wallet.getMnemonic();

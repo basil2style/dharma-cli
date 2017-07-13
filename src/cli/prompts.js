@@ -49,7 +49,7 @@ module.exports = {
   },
 
   BorrowFlow: {
-    reivewLoanTerms: {
+    reviewLoanTerms: {
       type: 'list',
       name: 'choice',
       message: 'Do you agree to these loan terms?',

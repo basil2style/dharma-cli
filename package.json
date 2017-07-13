@@ -10,7 +10,8 @@
     "compile": "babel --presets es2015 lib/ --out-dir src/",
     "test": "npm run compile && mocha --timeout 60000 --compilers js:babel-core/register test/unit/investor.js",
     "borrow": "npm run compile && ENV=development dharma borrow",
-    "authenticate": "npm run compile && ENV=development dharma authenticate"
+    "authenticate": "npm run compile && ENV=development dharma authenticate",
+    "invest": "npm run compile && ENV=development dharma invest"
   },
   "author": "",
   "license": "ISC",
@@ -19,11 +20,13 @@
     "bignumber.js": "^4.0.2",
     "bip39": "^2.3.1",
     "cli-spinner": "^0.2.6",
+    "commander": "^2.11.0",
     "dharma": "file:../dharma-js",
     "ethereumjs-util": "^5.1.2",
     "ethereumjs-wallet": "^0.6.0",
     "fs-extra": "^3.0.1",
     "inquirer": "^3.2.0",
+    "minimist": "^1.2.0",
     "mocha": "^3.4.2",
     "opn": "^5.1.0",
     "prompt": "^1.0.0",

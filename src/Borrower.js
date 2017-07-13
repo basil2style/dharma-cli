@@ -163,36 +163,6 @@ var Borrower = function () {
       await loan.acceptBids(bids);
     }
   }, {
-    key: 'acceptBids',
-    value: async function acceptBids(loan, bids) {
-      var decorator = new LoanDecorator(loan);
-
-      return new Promise(async function (resolve, reject) {
-        await loan.acceptBids(bids);
-        var termBeginEvent = await loan.events.termBegin();
-        termBeginEvent.watch(function () {
-          termBeginEvent.stopWatching(function () {
-            resolve();
-          });
-        });
-      });
-    }
-  }, {
-    key: 'rejectBids',
-    value: async function rejectBids(loan) {
-      var decorator = new LoanDecorator(loan);
-
-      return new Promise(async function (resolve, reject) {
-        await loan.rejectBids();
-        var bidsRejectedEvent = await loan.events.bidsRejected();
-        bidsRejectedEvent.watch(function () {
-          bidsRejectedEvent.stopWatching(function () {
-            resolve();
-          });
-        });
-      });
-    }
-  }, {
     key: 'getBestBidSet',
     value: async function getBestBidSet(loan) {
       var bids = await loan.getBids();
