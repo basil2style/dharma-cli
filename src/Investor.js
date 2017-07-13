@@ -52,8 +52,6 @@ var Investor = function () {
 
         if (bid) {
           var schema = new _BidSchema2.default(this.dharma.web3);
-          console.log(errorCallback);
-          console.log("about to bid");
           try {
             schema.validate(bid);
             await loan.bid(bid.amount, bid.bidder, bid.minInterestRate);
@@ -63,7 +61,7 @@ var Investor = function () {
             errorCallback(err);
             return;
           }
-          console.log('made it here');
+
           this.portfolio[loan.uuid] = {
             loan: loan,
             bid: bid,

@@ -46,6 +46,14 @@ var _commander = require('commander');
 
 var _commander2 = _interopRequireDefault(_commander);
 
+var _commandLineCommands2 = require('command-line-commands');
+
+var _commandLineCommands3 = _interopRequireDefault(_commandLineCommands2);
+
+var _commandLineArgs = require('command-line-args');
+
+var _commandLineArgs2 = _interopRequireDefault(_commandLineArgs);
+
 var _inquirer = require('inquirer');
 
 var _inquirer2 = _interopRequireDefault(_inquirer);
@@ -222,21 +230,16 @@ var CLI = function () {
   }], [{
     key: 'authenticate',
     value: async function authenticate(args) {
-      var token = void 0;
-      _commander2.default.version('0.1.0').usage('authenticate <token>').arguments('<token>').action(function (_token) {
-        token = _token;
+      var optionDefinitions = [{ name: 'authKey', alias: 'a', defaultOption: true, type: String }];
+
+      var params = (0, _commandLineArgs2.default)(optionDefinitions, {
+        argv: args
       });
-
-      _commander2.default.parse(args);
-
-      if (!token) {
-        _commander2.default.help();
-      }
 
       var authenticate = new _Authenticate2.default();
 
       try {
-        await authenticate.setAuthKey(token);
+        await authenticate.setAuthKey(params.authKey);
         console.log("Your account is now authenticated!  You may broadcast requests " + 'to the Dharma Loan Network');
       } catch (err) {
         console.log(err);
@@ -245,50 +248,55 @@ var CLI = function () {
     }
   }, {
     key: 'entry',
-    value: function entry(args) {
-      _commander2.default.version('0.1.0').command('borrow <amount>', "request an instant loan in Ether.").command('invest <decisionEnginePath>', "auto-invest in loans according to programmable criteria.").command('authenticate <token>', "authenticate yourself in order to borrow.").parse(args);
+    value: async function entry(args) {
+      var validCommands = [null, 'borrow', 'authenticate', 'invest'];
+
+      var _commandLineCommands = (0, _commandLineCommands3.default)(validCommands),
+          command = _commandLineCommands.command,
+          argv = _commandLineCommands.argv;
+
+      switch (command) {
+        case "borrow":
+          await CLI.borrow(argv);
+          break;
+        case "authenticate":
+          await CLI.authenticate(argv);
+          break;
+        case "invest":
+          await CLI.invest(argv);
+          break;
+        default:
+          // do something
+          break;
+      }
     }
   }, {
     key: 'borrow',
     value: async function borrow(args) {
-      var amount = void 0;
-      _commander2.default.version('0.1.0').option('-u, --unit [unit]', 'Specifies the unit of ether (e.g. wei, finney, szabo)', /^(wei|kwei|ada|mwei|babbage|gwei|shannon|szabo|finney|ether|kether|grand|einstein|mether|gether|tether|small)$/i).option('-w, --wallet <walletFilePath>', 'Specifies the path from which to load and save the wallet file store.').arguments('[options] <amount>').action(function (options, wallet, _amount, another) {
-        console.log(options);
-        console.log(wallet);
-        console.log(another);
-        amount = _amount;
+      var optionDefinitions = [{ name: 'unit', alias: 'u', defaultValue: 'ether', type: String }, { name: 'wallet', alias: 'w', type: String }, { name: 'amount', alias: 'a', defaultOption: true, type: Number }];
+
+      var params = (0, _commandLineArgs2.default)(optionDefinitions, {
+        argv: args
       });
 
-      _commander2.default.parse(args);
-
-      if (!amount) {
-        _commander2.default.help();
-      }
-      console.log("path received: " + _commander2.default.unit);
-      var cli = await CLI.init(_commander2.default.wallet);
-      await cli.borrowFlow(amount, _commander2.default.unit);
+      var cli = await CLI.init(params.wallet);
+      await cli.borrowFlow(params.amount, params.unit);
     }
   }, {
     key: 'invest',
     value: async function invest(args) {
-      var decisionEnginePath = void 0;
-      _commander2.default.version('0.1.0').usage('invest <decisionEnginePath>').arguments('<decisionEnginePath>').action(function (path) {
-        decisionEnginePath = path;
+      var optionDefinitions = [{ name: 'engine', alias: 'e', defaultOption: true, type: String }];
+
+      var params = (0, _commandLineArgs2.default)(optionDefinitions, {
+        argv: args
       });
 
-      _commander2.default.parse(args);
-
-      if (!decisionEnginePath) {
-        _commander2.default.help();
-      }
-
       var cli = await CLI.init();
-      await cli.investFlow(decisionEnginePath);
+      await cli.investFlow(params.engine);
     }
   }, {
     key: 'init',
     value: async function init(walletStoreFile) {
-      console.log(walletStoreFile);
       var walletExists = await _Wallet2.default.walletExists(walletStoreFile);
       var wallet = void 0;
       if (walletExists) {
