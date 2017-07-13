@@ -46,5 +46,14 @@ module.exports = {
       name: 'confirmStart',
       message: 'You need to authenticate your account in order to request ' + "credit on the Dharma Loan Network.  Let's get started."
     }
+  },
+
+  BorrowFlow: {
+    reivewLoanTerms: {
+      type: 'list',
+      name: 'choice',
+      message: 'Do you agree to these loan terms?',
+      choices: ['Accept', 'Reject']
+    }
   }
 };

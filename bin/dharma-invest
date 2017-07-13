@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+const CLI = require('../src/CLI.js')
+CLI.invest(process.argv);

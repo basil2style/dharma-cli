@@ -60,6 +60,10 @@ var _opn = require('opn');
 
 var _opn2 = _interopRequireDefault(_opn);
 
+var _LoanDecorator = require('./decorators/LoanDecorator');
+
+var _LoanDecorator2 = _interopRequireDefault(_LoanDecorator);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -115,7 +119,72 @@ var CLI = function () {
         }
       }
 
-      loader.stop();
+      loader.setSpinnerTitle("Deploying loan request.");
+
+      var onAuctionStart = function onAuctionStart(err, result) {
+        loader.setSpinnerTitle("Loan request deployed. Investors are bidding on your request.");
+      };
+
+      var onReviewStart = this.loanReviewFlow(loan, loader);
+
+      try {
+        await this.borrower.broadcastLoanRequest(loan, onAuctionStart, onReviewStart);
+      } catch (err) {
+        loader.stop(true);
+        console.log(err);
+        process.exit();
+      }
+    }
+  }, {
+    key: 'loanReviewFlow',
+    value: function loanReviewFlow(loan, loader) {
+      var _this = this;
+
+      return async function (err, bestBidSet) {
+        loader.stop(true);
+
+        if (err) {
+          switch (err.error) {
+            case 'PRINCIPAL_UNMET':
+              console.error("Your loan request did not attract enough bidders " + "from the Dharma Loan Network.  Try again in 5 minutes.");
+              break;
+            default:
+              console.error(err);
+              break;
+          }
+
+          process.exit();
+        } else {
+
+          loan.interestRate = bestBidSet.interestRate;
+          var decorator = new _LoanDecorator2.default(loan);
+
+          console.log("Your loan request of " + amount + " " + unit + " has been" + " approved at a " + decorator.interestRate() + " simple interest rate.");
+          var answer = await _inquirer2.default.prompt([_prompts.BorrowFlow.reviewLoanTerms]);
+
+          if (answer.choice === 'Accept') {
+            loader.setSpinnerTitle("Accepting loan terms");
+            loader.start();
+
+            await _this.borrower.acceptBids(loan, bestBidSet.bids);
+            loader.stop(true);
+
+            console.log("Your loan has been funded and " + decorator.principal() + " ether has been transferred to " + "address " + loan.borrower);
+
+            process.exit();
+          } else {
+            loader.setSpinnerTitle("Rejecting loan terms");
+            loader.start();
+
+            await _this.borrower.rejectBids(loan);
+            loader.stop(true);
+
+            console.log("You've rejected the loan terms presented to you.");
+
+            process.exit();
+          }
+        }
+      };
     }
   }], [{
     key: 'authenticate',
