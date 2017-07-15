@@ -72,6 +72,20 @@ var _LoanDecorator = require('./decorators/LoanDecorator');
 
 var _LoanDecorator2 = _interopRequireDefault(_LoanDecorator);
 
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _Dashboard = require('./views/Dashboard');
+
+var _Dashboard2 = _interopRequireDefault(_Dashboard);
+
+var _reactBlessed = require('react-blessed');
+
+var _blessed = require('blessed');
+
+var _blessed2 = _interopRequireDefault(_blessed);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -209,12 +223,23 @@ var CLI = function () {
           console.error(err.stack);
         }
 
-        console.log("Auto-investing in loans from public key " + this.wallet.getAddress());
+        // Creating our screen
+        // const screen = blessed.screen({
+        //   autoPadding: true,
+        //   smartCSR: true,
+        //   title: 'react-blessed hello world'
+        // });
 
-        process.on('SIGINT', async function (options, err) {
-          await investor.stopDaemon();
-          process.exit();
-        }.bind(null, { exit: true }));
+        // // Adding a way to quit the program
+        // screen.key(['escape', 'q', 'C-c'], async function(ch, key) {
+        //   await investor.stopDaemon();
+        //   return process.exit(0);
+        // });
+
+        // const portfolio = await investor.loadPortfolio();
+        // console.log(portfolio)
+
+        // render(<Dashboard loans={portfolio} />, screen);
       } catch (err) {
         console.error(err);
         process.exit();

@@ -32,6 +32,24 @@ class Util {
       listener.stopWatching();
     }, 500)
   }
+
+  getBalance(address) {
+    return new Promise(function(resolve, reject) {
+      this.web3.eth.getBalance(address, (err, balance) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(balance);
+        }
+      })
+    }.bind(this));
+  }
+
+  async pause(seconds) {
+    return new Promise(function(resolve, reject) {
+      setTimeout(() => { resolve() }, seconds*1000);
+    });
+  }
 }
 
 module.exports = Util;

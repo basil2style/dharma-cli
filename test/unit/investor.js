@@ -13,13 +13,14 @@ import mock from 'mock-fs';
 
 const util = new Util(web3);
 const loanUtils = new LoanUtils(web3);
-const decisionEngine = new DecisionEngine();
 const dharma = new Dharma(web3);
 const borrower = new Borrower(dharma);
 
-process.on('unhandledRejection', function onError(err) {
-  console.log(err.stack);
-});
+const walletStub = {
+  getAddress: () => {
+    return ACCOUNTS[13];
+  }
+}
 
 describe("Investor", () => {
   let investor;
@@ -27,14 +28,14 @@ describe("Investor", () => {
   let investmentUuids = [];
 
   it("should load the decision engine from a file w/o throwing", async () => {
-    const path = __dirname + '/../utils/DecisionEngine.js';
-    investor = await Investor.fromPath(dharma, path);
+    const path = 'test/utils/DecisionEngine.js';
+    investor = await Investor.fromPath(dharma, walletStub, path);
   })
 
   it('should throw on loading decision engine from non-existent file', async () => {
     try {
-      const path = __dirname + '/../utils/nonExistent.js';
-      investor = await Investor.fromPath(dharma, path);
+      const path = 'test/utils/nonExistent.js';
+      investor = await Investor.fromPath(dharma, walletStub, path);
       expect().fail("should throw error");
     } catch (err) {
       expect(err.toString()).to.contain("Decision engine file not found.");
@@ -42,11 +43,12 @@ describe("Investor", () => {
   })
 
   it('should load the decision engine from memory w/o throwing', () => {
-    investor = new Investor(dharma, decisionEngine);
+    investor = new Investor(dharma, walletStub, DecisionEngine);
   })
 
   describe("startDaemon()", () => {
     before(async () => {
+      mock();
       await investor.startDaemon(errorCallback);
     })
 
@@ -111,7 +113,6 @@ describe("Investor", () => {
             try {
               expect(investor.decisionEngine.decide.calledOnce).to.be(true);
               expect(investor.decisionEngine.decide.args[0][0].uuid).to.be(loan.uuid);
-
               const bids = await loan.getBids();
 
               const investorBid =
@@ -130,9 +131,12 @@ describe("Investor", () => {
       })
 
       it('should withdraw the remainder of the bid that is not accepted', (done) => {
-        const balanceBefore = web3.eth.getBalance(ACCOUNTS[13]);
+        let balanceBefore;
         let acceptedBids = [{ bidder: ACCOUNTS[13], amount: web3.toWei(0.501, 'ether') }];
-        loan.getBids().then((bids) => {
+        util.getBalance(ACCOUNTS[13]).then((balance) => {
+          balanceBefore = balance;
+          return loan.getBids()
+        }).then((bids) => {
           bids.some((bid) => {
             if (bid.bidder != ACCOUNTS[13]) {
               acceptedBids.push({
@@ -144,21 +148,20 @@ describe("Investor", () => {
             return acceptedBids.length == 6;
           })
 
-          loan.acceptBids(acceptedBids).then(() => {
-            investmentUuids.push(loan.uuid);
+          return loan.acceptBids(acceptedBids);
+        }).then(() => {
+          investmentUuids.push(loan.uuid);
 
-            setTimeout(() => {
-              try {
-                const balanceAfter = web3.eth.getBalance(ACCOUNTS[13]);
-                expect(balanceAfter.gt(balanceBefore)).to.be(true);
-                done();
-              } catch (err) {
-                done(err)
-              }
-            }, 6000)
-          }).catch((err) => {
-            done(err);
-          })
+          setTimeout(() => {
+            util.getBalance(ACCOUNTS[13]).then((balanceAfter) => {
+              expect(balanceAfter.gt(balanceBefore)).to.be(true);
+              done();
+            }).catch((err) => {
+              done(err)
+            });
+          }, 6000)
+        }).catch((err) => {
+          done(err);
         })
       })
 
@@ -170,49 +173,50 @@ describe("Investor", () => {
           }
         })
 
-        const balanceBefore = web3.eth.getBalance(ACCOUNTS[13]);
-
-        loan.acceptBids(acceptedBids).then(() => {
+        let balanceBefore;
+        util.getBalance(ACCOUNTS[13]).then((balance) => {
+          balanceBefore = balance;
+          return loan.acceptBids(acceptedBids);
+        }).then(() => {
           setTimeout(() => {
-            try {
-              const balanceAfter = web3.eth.getBalance(ACCOUNTS[13]);
+            util.getBalance(ACCOUNTS[13]).then((balanceAfter) => {
               expect(balanceAfter.gt(balanceBefore)).to.be(true);
               done();
-            } catch (err) {
-              done(err)
-            }
+            }).catch((err) => {
+              done(err);
+            });
           }, 6000)
         });
       })
 
       it('should withdraw the entire balance if bids are rejected', (done) => {
-        const balanceBefore = web3.eth.getBalance(ACCOUNTS[13]);
-
-        loan.rejectBids().then(() => {
+        let balanceBefore;
+        util.getBalance(ACCOUNTS[13]).then((balance) => {
+          balanceBefore = balance;
+          return loan.rejectBids();
+        }).then(() => {
           setTimeout(() => {
-            try {
-              const balanceAfter = web3.eth.getBalance(ACCOUNTS[13]);
+            util.getBalance(ACCOUNTS[13]).then((balanceAfter) => {
               expect(balanceAfter.gt(balanceBefore)).to.be(true);
               done();
-            } catch (err) {
-              done(err)
-            }
+            }).catch((err) => {
+              done(err);
+            });
           }, 6000)
         });
       })
 
       it('should withdraw the entire balance if bids are ignored', (done) => {
-        const balanceBefore = web3.eth.getBalance(ACCOUNTS[13]);
-
-        setTimeout(() => {
-          try {
-            const balanceAfter = web3.eth.getBalance(ACCOUNTS[13]);
-            expect(balanceAfter.gt(balanceBefore)).to.be(true);
-            done();
-          } catch (err) {
-            done(err)
-          }
-        }, 6000)
+        util.getBalance(ACCOUNTS[13]).then((balanceBefore) => {
+          setTimeout(() => {
+              util.getBalance(ACCOUNTS[13]).then((balanceAfter) => {
+                expect(balanceAfter.gt(balanceBefore)).to.be(true);
+                done();
+              }).catch((err) => {
+                done(err);
+              });
+          }, 6000)
+        });
       })
 
       it("it should send whatever redeemable value there is to the user", (done) => {
@@ -233,13 +237,7 @@ describe("Investor", () => {
         }).then(() => {
           return dharma.loans.events.termBegin({ uuid: loan.uuid });
         }).then((termBeginEvent) => {
-          // termBeginEvent.watch(async (err, result) => {
-          //   console.log("term has begun.")
-            // termBeginEvent.stopWatching(async () => {
-              return loan.repay(web3.toWei(1, 'ether'));
-            // })
-            // console.log("ostensibly paid back");
-          // })
+          return loan.repay(web3.toWei(1, 'ether'));
         })
       })
 
@@ -248,26 +246,34 @@ describe("Investor", () => {
 
   describe("stopDaemon()", () => {
     before(async () => {
-      investor.stopDaemon();
+      await investor.stopDaemon();
     })
+
+    after(mock.restore);
 
     describe("desirableLoan", () => {
       let loan;
 
       before(async () => {
+        console.log("starts here")
         const loanData = await loanUtils.generateSignedLoanData({
           principal: web3.toWei(4, 'ether'),
           defaultRisk: web3.toWei(0.85, 'ether')
         });
+        console.log("goes here")
 
         loan = await dharma.loans.create(loanData);
+        console.log("then here")
 
         loan.bid = sinon.spy();
+        console.log("then  we here")
+
       })
 
       it("should not invest in the loan", (done) => {
         const onLoanBroadcasted = () => { /* do nothing */ }
         const onLoanReview = () => {
+          console.log("finally")
           try {
             expect(loan.bid.called).to.be(false);
             done()
@@ -275,6 +281,7 @@ describe("Investor", () => {
             done(err)
           }
         }
+        console.log("and finally")
 
         borrower.broadcastLoanRequest(loan, onLoanBroadcasted, onLoanReview)
       })

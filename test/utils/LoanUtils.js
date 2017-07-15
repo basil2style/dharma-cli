@@ -3,6 +3,7 @@ import Dharma from 'dharma';
 import _ from 'lodash';
 import BigNumber from 'bignumber.js';
 import Random from 'random-js';
+import Borrower from '../../src/Borrower';
 
 class LoanUtils {
   constructor(web3) {
@@ -24,9 +25,9 @@ class LoanUtils {
         compounded: true
       },
       attestorFee: this.web3.toWei(0.001, 'ether'),
-      defaultRisk: 0.323,
+      defaultRisk: this.web3.toWei(0.323, 'ether'),
       auctionPeriodLength: 5,
-      reviewPeriodLength: 5
+      reviewPeriodLength: 10
     }
 
     for (let key in options) {
@@ -68,8 +69,8 @@ class LoanUtils {
           expectedWinningBids: expectedWinningBids,
           expectedInterestRate: expectedInterestRate
         })
-      }, function(err, result) {
-        reviewCallback(err, result);
+      }, async function(err, result) {
+        await reviewCallback(err, result);
         done();
       });
     });
@@ -77,6 +78,50 @@ class LoanUtils {
 
   async simulateFailedAuction(borrower, loan, deployedCallback, reviewCallback, done) {
     await this.simulateAuction(borrower, loan, deployedCallback, reviewCallback, done, false);
+  }
+
+  async generatePortfolioInvestment(address, options={}) {
+    const _this = this;
+    const borrower = new Borrower(this.dharma);
+    return new Promise(async function(resolve, reject) {
+      const loanData = await _this.generateSignedLoanData(options);
+      const loan = await _this.dharma.loans.create(loanData);
+
+      const deployedCallback = (err, result) => {
+      };
+      const reviewCallback = async (err, bestBids) => {
+        const bid = {
+          bidder: address,
+          amount: loan.attestorFee.plus(loan.principal)
+        }
+        await loan.acceptBids([bid]);
+      }
+
+      const termBeginEvent = await loan.events.termBegin();
+      termBeginEvent.watch(() => {
+        termBeginEvent.stopWatching(() => {
+          resolve(loan);
+        })
+      })
+
+      borrower.broadcastLoanRequest(loan, deployedCallback, reviewCallback);
+    });
+  }
+
+  static v1TermsDefault(options={}) {
+    let terms = {
+      version: 1,
+      periodType: 'weekly',
+      periodLength: 1,
+      termLength: 1,
+      compounded: false
+    }
+
+    for (let key in options) {
+      terms[key] = options[key];
+    }
+
+    return terms;
   }
 
   generateTestBids(bidders, totalNeeded, minAmount, maxAmount, minInterest=0.1, maxInterest=1.0) {

@@ -34,6 +34,19 @@ var Util = function () {
         });
       });
     }
+  }, {
+    key: 'getBalance',
+    value: async function getBalance(web3, address) {
+      return new Promise(function (resolve, reject) {
+        web3.eth.getBalance(address, function (err, balance) {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(balance);
+          }
+        });
+      });
+    }
   }]);
 
   return Util;
