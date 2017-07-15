@@ -8,7 +8,7 @@
   "main": "./bin/index.js",
   "scripts": {
     "compile": "babel --presets es2015 lib/ --out-dir src/",
-    "test": "npm run compile && mocha --timeout 120000 --compilers js:babel-core/register test/unit/portfolio.js",
+    "test": "npm run compile && mocha --timeout 120000 --compilers js:babel-core/register test/unit/investor.js",
     "borrow": "npm run compile && ENV=development dharma borrow",
     "authenticate": "npm run compile && ENV=development dharma authenticate",
     "invest": "npm run compile && ENV=development dharma invest"

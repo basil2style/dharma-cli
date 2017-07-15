@@ -255,25 +255,20 @@ describe("Investor", () => {
       let loan;
 
       before(async () => {
-        console.log("starts here")
         const loanData = await loanUtils.generateSignedLoanData({
           principal: web3.toWei(4, 'ether'),
           defaultRisk: web3.toWei(0.85, 'ether')
         });
-        console.log("goes here")
 
         loan = await dharma.loans.create(loanData);
-        console.log("then here")
 
         loan.bid = sinon.spy();
-        console.log("then  we here")
 
       })
 
       it("should not invest in the loan", (done) => {
         const onLoanBroadcasted = () => { /* do nothing */ }
         const onLoanReview = () => {
-          console.log("finally")
           try {
             expect(loan.bid.called).to.be(false);
             done()
@@ -281,7 +276,6 @@ describe("Investor", () => {
             done(err)
           }
         }
-        console.log("and finally")
 
         borrower.broadcastLoanRequest(loan, onLoanBroadcasted, onLoanReview)
       })

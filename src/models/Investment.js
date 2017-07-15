@@ -83,6 +83,24 @@ var Investment = function () {
     value: function getWithdrawn() {
       return this.withdrawn;
     }
+  }, {
+    key: "stopWatchingEvents",
+    value: async function stopWatchingEvents() {
+      var _this = this;
+
+      var _loop = async function _loop(eventName) {
+        var event = _this.events[eventName];
+        await new Promise(function (resolve, reject) {
+          event.stopWatching(function () {
+            resolve();
+          });
+        });
+      };
+
+      for (var eventName in this.events) {
+        await _loop(eventName);
+      }
+    }
 
     // isDelinquent() {
     //

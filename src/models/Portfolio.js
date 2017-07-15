@@ -196,24 +196,6 @@ var Portfolio = function () {
       }
       return totalInterest;
     }
-    //
-    // refresh() {
-    //   for (let uuid in this.investments) {
-    //     const investment = this.investments[uuid];
-    //
-    //   }
-    // }
-    //
-    // async _refreshInvestment(investment) {
-    //   if (investment.state === Constants.ACCEPTED_STATE) {
-    //     const amountRepaid = await investment.loan.amountRepaid();
-    //     investment.setAmountRepaid(amountRepaid);
-    //
-    //     const now = Date.now();
-    //     if (investment.terms.expected)
-    //   }
-    // }
-
   }, {
     key: 'save',
     value: async function save() {
@@ -234,6 +216,14 @@ var Portfolio = function () {
     key: 'getInvestments',
     value: function getInvestments() {
       return Object.keys(this.investments);
+    }
+  }, {
+    key: 'stopWatchingEvents',
+    value: async function stopWatchingEvents() {
+      for (var uuid in this.investments) {
+        var investment = this.investments[uuid];
+        await investment.stopWatchingEvents();
+      }
     }
   }], [{
     key: 'load',

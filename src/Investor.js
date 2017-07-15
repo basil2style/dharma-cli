@@ -83,8 +83,14 @@ var Investor = function () {
   }, {
     key: 'stopDaemon',
     value: async function stopDaemon() {
+      await this.portfolio.stopWatchingEvents();
       await this.savePortfolio();
-      await this.dharma.web3.reset();
+
+      await new Promise(function (resolve, reject) {
+        this.createdEvent.stopWatching(function () {
+          resolve();
+        });
+      }.bind(this));
     }
   }, {
     key: 'refreshInvestment',
