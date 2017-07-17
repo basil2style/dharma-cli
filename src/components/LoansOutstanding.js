@@ -6,6 +6,10 @@ var _blessed = require('blessed');
 
 var _blessed2 = _interopRequireDefault(_blessed);
 
+var _blessedContrib = require('blessed-contrib');
+
+var _blessedContrib2 = _interopRequireDefault(_blessedContrib);
+
 var _LoanDecorator = require('../decorators/LoanDecorator');
 
 var _LoanDecorator2 = _interopRequireDefault(_LoanDecorator);
@@ -18,50 +22,27 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var containerStyle = {
+var tableStyle = {
   top: 0,
   left: 0,
   label: 'Loans Outstanding',
-  width: "60%",
+  width: "70%",
   height: "60%",
+  fg: 'white',
+  selectedFg: 'white',
+  selectedBg: '#007f00',
+  interactive: true,
   border: {
-    type: 'line'
+    type: 'line',
+    fg: 'cyan'
   },
   style: {
-    border: {
-      fg: 'cyan'
-    }
-  }
-};
-
-var boxStyle = {
-  width: '95%',
-  height: '95%',
-  top: 'center',
-  left: 'center'
-};
-
-var listStyle = {
-  top: 0,
-  left: 0,
-  width: '5%',
-  height: '100%',
-  align: 'center',
-  keys: true
-};
-
-var listTableStyle = {
-  top: 0,
-  left: '5%',
-  width: '95%',
-  height: '100%',
-  align: 'center',
-  style: {
-    header: {
-      bg: 'cyan'
-    }
+    bold: true,
+    fg: 'green'
   },
-  noCellBorders: true
+  keys: true,
+  columnWidth: [14, 14, 10, 10, 14, 12, 12],
+  columnSpacing: 6
 };
 
 var headers = ['UUID', 'BORROWER', 'PRINCIPAL', 'INTEREST', 'ATTESTOR', 'ATTESTOR FEE', 'DEFAULT RISK'];
@@ -70,44 +51,28 @@ var LoansOutstanding = function () {
   function LoansOutstanding() {
     _classCallCheck(this, LoansOutstanding);
 
-    this.container = _blessed2.default.box(containerStyle);
-    this.box = _blessed2.default.box(boxStyle);
-    this.listTable = _blessed2.default.listtable(listTableStyle);
-    this.listTable.setData([headers]);
-    this.list = _blessed2.default.list(listStyle);
-    this.selected = 1;
-
-    this.box.append(this.list);
-    this.box.append(this.listTable);
-
-    this.container.append(this.box);
+    this.table = _blessedContrib2.default.table(tableStyle);
   }
 
   _createClass(LoansOutstanding, [{
     key: 'getNode',
     value: function getNode() {
-      return this.container;
+      return this.table;
     }
   }, {
     key: 'render',
     value: function render(loans) {
-      var loanList = [headers];
+      var loanList = [];
       loans.forEach(function (loan) {
         var decorator = new _LoanDecorator2.default(loan);
         loanList.push([decorator.uuid(), decorator.borrower(), decorator.principal(), decorator.interestRate(), decorator.attestor(), decorator.attestorFee(), decorator.defaultRisk()]);
       });
-      var stubList = Array(loanList.length).fill("");
-      stubList[this.selected] = _nodeEmoji2.default.get('coffee');
 
-      this.listTable.setData(loanList);
-      this.list.setItems(stubList);
-      this.list.select(this.selected);
-      this.list.on('select item', function (item, index) {
-        this.selected = index;
-        this.list.setItem(_nodeEmoji2.default.get('coffee'), "");
-        this.list.setItem(index, _nodeEmoji2.default.get('coffee'));
-      }.bind(this));
-      this.list.focus();
+      this.table.focus();
+      this.table.setData({
+        headers: headers,
+        data: loanList
+      });
     }
   }]);
 
