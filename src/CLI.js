@@ -72,19 +72,9 @@ var _LoanDecorator = require('./decorators/LoanDecorator');
 
 var _LoanDecorator2 = _interopRequireDefault(_LoanDecorator);
 
-var _react = require('react');
+var _InvestorApp = require('./components/InvestorApp');
 
-var _react2 = _interopRequireDefault(_react);
-
-var _Dashboard = require('./views/Dashboard');
-
-var _Dashboard2 = _interopRequireDefault(_Dashboard);
-
-var _reactBlessed = require('react-blessed');
-
-var _blessed = require('blessed');
-
-var _blessed2 = _interopRequireDefault(_blessed);
+var _InvestorApp2 = _interopRequireDefault(_InvestorApp);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -211,35 +201,8 @@ var CLI = function () {
     value: async function investFlow(decisionEnginePath) {
       try {
         var investor = await _Investor2.default.fromPath(this.dharma, this.wallet, decisionEnginePath);
-
-        var errorCallback = function errorCallback(err) {
-          console.log(err);
-          process.exit();
-        };
-
-        try {
-          await investor.startDaemon(errorCallback);
-        } catch (err) {
-          console.error(err.stack);
-        }
-
-        // Creating our screen
-        // const screen = blessed.screen({
-        //   autoPadding: true,
-        //   smartCSR: true,
-        //   title: 'react-blessed hello world'
-        // });
-
-        // // Adding a way to quit the program
-        // screen.key(['escape', 'q', 'C-c'], async function(ch, key) {
-        //   await investor.stopDaemon();
-        //   return process.exit(0);
-        // });
-
-        // const portfolio = await investor.loadPortfolio();
-        // console.log(portfolio)
-
-        // render(<Dashboard loans={portfolio} />, screen);
+        var app = new _InvestorApp2.default(investor);
+        await app.start();
       } catch (err) {
         console.error(err);
         process.exit();
@@ -347,6 +310,7 @@ var CLI = function () {
           try {
             wallet = await _Wallet2.default.getWallet(answer.passphrase, walletStoreFile);
             console.log("Wallet unlocked!");
+            console.log("Address: " + wallet.getAddress());
             break;
           } catch (err) {
             console.error("Incorrect passphrase.  Please try again.");

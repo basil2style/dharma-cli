@@ -19,6 +19,18 @@ var Investment = function () {
   }
 
   _createClass(Investment, [{
+    key: "setInvestmentUpdateCallback",
+    value: function setInvestmentUpdateCallback(callback) {
+      this.investmentUpdateCallback = callback;
+    }
+  }, {
+    key: "onInvestmentUpdate",
+    value: function onInvestmentUpdate() {
+      if (this.investmentUpdateCallback) {
+        this.investmentUpdateCallback(callback);
+      }
+    }
+  }, {
     key: "getState",
     value: function getState() {
       return this.state;
@@ -101,11 +113,6 @@ var Investment = function () {
         await _loop(eventName);
       }
     }
-
-    // isDelinquent() {
-    //
-    // }
-
   }, {
     key: "toJson",
     value: function toJson() {

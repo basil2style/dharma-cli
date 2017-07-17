@@ -131,9 +131,10 @@ var Wallet = function () {
 
       var ethJSWallet = node.getWallet();
       var wallet = new Wallet(ethJSWallet, mnemonic, storeFile);
-      var walletAddress = _Util2.default.stripZeroEx(wallet.getAddress());
-
-      if (walletAddress !== address) throw new Error('Incorrect seed phrase.');
+      // const walletAddress = Util.stripZeroEx(wallet.getAddress())
+      //
+      // if (walletAddress !== address)
+      //   throw new Error('Incorrect seed phrase.');
 
       return wallet;
     }

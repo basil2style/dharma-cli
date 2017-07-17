@@ -22,6 +22,8 @@ var _lodash2 = _interopRequireDefault(_lodash);
 
 var _babelCore = require('babel-core');
 
+var _actions = require('./actions/actions');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -37,15 +39,18 @@ var Investor = function () {
     this.dharma = dharma;
     this.wallet = wallet;
     this.decisionEngine = new DecisionEngine(dharma.web3);
+    this.store = null;
   }
 
   _createClass(Investor, [{
     key: 'startDaemon',
-    value: async function startDaemon(errorCallback) {
+    value: async function startDaemon(store, errorCallback) {
+      this.store = store;
+
       try {
         this.portfolio = await this.loadPortfolio();
       } catch (err) {
-        this.portfolio = new _Portfolio2.default(this.dharma.web3);
+        this.portfolio = new _Portfolio2.default(store, this.dharma.web3);
       }
 
       this.createdEvent = await this.dharma.loans.events.created();
@@ -55,7 +60,6 @@ var Investor = function () {
 
         if (bid) {
           bid.bidder = this.wallet.getAddress();
-
           var schema = new _BidSchema2.default(this.dharma.web3);
           try {
             schema.validate(bid);
@@ -125,8 +129,6 @@ var Investor = function () {
       });
 
       investment.addEvent('auctionCompletedEvent', auctionCompletedEvent);
-
-      this.setupReviewStateListeners(investment);
     }
   }, {
     key: 'setupReviewStateListeners',
@@ -206,6 +208,9 @@ var Investor = function () {
 
           investment.setTermBeginDate(new Date().toJSON());
           investment.setState(_Constants.ACCEPTED_STATE);
+
+          _this.store.dispatch((0, _actions.addLoan)(investment.loan));
+
           await _this.savePortfolio();
         });
         investment.getEvent('bidsRejectedEvent').stopWatching(function () {});
@@ -256,7 +261,16 @@ var Investor = function () {
   }, {
     key: 'loadPortfolio',
     value: async function loadPortfolio() {
-      this.portfolio = await _Portfolio2.default.load(this.dharma);
+      try {
+        this.portfolio = await _Portfolio2.default.load(this.dharma);
+      } catch (err) {
+        this.portfolio = new _Portfolio2.default(this.dharma.web3);
+      }
+
+      this.portfolio.forEachInvestment(function (investment) {
+        this.store.dispatch((0, _actions.addLoan)(investment.loan));
+      }.bind(this));
+
       return this.portfolio;
     }
   }, {

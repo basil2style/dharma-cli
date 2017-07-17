@@ -22,19 +22,21 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Dashboard = function (_Component) {
   _inherits(Dashboard, _Component);
 
-  function Dashboard(loans) {
+  function Dashboard(props) {
     _classCallCheck(this, Dashboard);
 
-    var _this = _possibleConstructorReturn(this, (Dashboard.__proto__ || Object.getPrototypeOf(Dashboard)).call(this));
+    var _this = _possibleConstructorReturn(this, (Dashboard.__proto__ || Object.getPrototypeOf(Dashboard)).call(this, props));
 
-    _this.loans = loans;
+    _this.portfolio = props.portfolio;
+    _this.state = _this.portfolio.toJson();
     return _this;
   }
 
   _createClass(Dashboard, [{
     key: 'render',
     value: function render() {
-      return _react2.default.createElement(_LoanList2.default, { loans: this.props.loans });
+
+      return _react2.default.createElement(_LoanList2.default, { loans: loans });
     }
   }]);
 

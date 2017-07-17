@@ -32,7 +32,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var MIN_GAS_REQUIRED = 500000;
+var MIN_GAS_REQUIRED = 1000000;
 var GAS_PRICE_IN_GWEI = 22;
 
 var Borrower = function () {
@@ -144,6 +144,7 @@ var Borrower = function () {
         });
       });
 
+      var balance = await _Util2.default.getBalance(this.web3, loan.borrower);
       await loan.broadcast({ from: loan.borrower });
     }
   }, {

@@ -44,6 +44,7 @@ var Portfolio = function () {
 
     this.web3 = web3;
     this.investments = investments;
+    this.portfolioUpdateCallback = null;
   }
 
   _createClass(Portfolio, [{
@@ -82,6 +83,18 @@ var Portfolio = function () {
       }
 
       return riskProfile;
+    }
+  }, {
+    key: 'setPortfolioUpdateCallback',
+    value: function setPortfolioUpdateCallback(callback) {
+      this.portfolioUpdateCallback = callback;
+    }
+  }, {
+    key: 'onPortfolioUpdate',
+    value: function onPortfolioUpdate() {
+      if (this.portfolioUpdateCallback) {
+        this.portfolioUpdateCallback();
+      }
     }
   }, {
     key: 'getTotalCash',
@@ -197,6 +210,13 @@ var Portfolio = function () {
       return totalInterest;
     }
   }, {
+    key: 'forEachInvestment',
+    value: function forEachInvestment(callback) {
+      for (var uuid in this.investments) {
+        callback(this.getInvestment(uuid));
+      }
+    }
+  }, {
     key: 'save',
     value: async function save() {
       var raw = {};
@@ -232,13 +252,14 @@ var Portfolio = function () {
       try {
         raw = await _fsExtra2.default.readJson(PORTFOLIO_STORE_FILE);
       } catch (err) {
+        console.log(err);
         throw new Error('Portfolio store file does not exist.');
       }
 
       var investments = {};
 
       var promises = Object.keys(raw).map(async function (uuid) {
-        investments[uuid] = await _Investment2.default.fromJson(raw, dharma);
+        investments[uuid] = await _Investment2.default.fromJson(raw[uuid], dharma);
       }.bind(this));
 
       await Promise.all(promises);
