@@ -11,6 +11,29 @@ var loans = function loans() {
   var action = arguments[1];
 
   switch (action.type) {
+    case 'INIT_STATE':
+      var portfolio = action.portfolio;
+      return Object.keys(portfolio).map(function (uuid) {
+        var investment = portfolio[uuid];
+        var loan = investment.loan;
+        return {
+          uuid: loan.uuid,
+          borrower: loan.borrower,
+          principal: loan.principal,
+          interestRate: loan.interestRate,
+          terms: {
+            version: loan.terms.version,
+            periodType: loan.terms.periodType,
+            periodLength: loan.terms.periodLength,
+            termLength: loan.terms.termLength,
+            compounded: loan.terms.compounded
+          },
+          attestor: loan.attestor,
+          attestorFee: loan.attestorFee,
+          defaultRisk: loan.defaultRisk
+        };
+      });
+      break;
     case 'ADD_LOAN':
       return [].concat(_toConsumableArray(state), [{
         uuid: action.uuid,

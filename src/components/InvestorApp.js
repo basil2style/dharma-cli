@@ -2,23 +2,15 @@
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = require('react');
-
-var _react2 = _interopRequireDefault(_react);
-
-var _reactBlessed = require('react-blessed');
-
-var _reactRedux = require('react-redux');
-
-var _redux = require('redux');
-
 var _reducers = require('../reducers');
 
 var _reducers2 = _interopRequireDefault(_reducers);
 
-var _Dashboard = require('./Dashboard');
+var _redux = require('redux');
 
-var _Dashboard2 = _interopRequireDefault(_Dashboard);
+var _LoansOutstanding = require('./LoansOutstanding');
+
+var _LoansOutstanding2 = _interopRequireDefault(_LoansOutstanding);
 
 var _blessed = require('blessed');
 
@@ -34,6 +26,7 @@ var InvestorApp = function () {
 
     this.investor = investor;
 
+    this.onStateChange = this.onStateChange.bind(this);
     this.errorCallback = this.errorCallback.bind(this);
     this.exit = this.exit.bind(this);
   }
@@ -41,29 +34,36 @@ var InvestorApp = function () {
   _createClass(InvestorApp, [{
     key: 'start',
     value: async function start() {
-      var store = (0, _redux.createStore)(_reducers2.default);
-
-      try {
-        await this.investor.startDaemon(store, this.errorCallback);
-      } catch (err) {
-        console.error(err.stack);
-      }
+      this.store = (0, _redux.createStore)(_reducers2.default);
+      this.store.subscribe(this.onStateChange);
 
       // Creating our screen
       this.screen = _blessed2.default.screen({
         autoPadding: true,
-        smartCSR: true,
-        title: 'react-blessed hello world'
+        smartCSR: true
       });
+
+      this.loansOutstanding = new _LoansOutstanding2.default();
 
       // Adding a way to quit the program
       this.screen.key(['escape', 'q', 'C-c'], this.exit);
 
-      (0, _reactBlessed.render)(_react2.default.createElement(
-        _reactRedux.Provider,
-        { store: store },
-        _react2.default.createElement(_Dashboard2.default, null)
-      ), this.screen);
+      this.screen.append(this.loansOutstanding.getNode());
+      this.screen.render();
+      this.screen.enableKeys();
+
+      try {
+        await this.investor.startDaemon(this.store, this.errorCallback);
+      } catch (err) {
+        console.error(err.stack);
+      }
+    }
+  }, {
+    key: 'onStateChange',
+    value: function onStateChange() {
+      var state = this.store.getState();
+      this.loansOutstanding.render(state.loans);
+      this.screen.render();
     }
   }, {
     key: 'errorCallback',
@@ -81,7 +81,7 @@ var InvestorApp = function () {
       await this.investor.stopDaemon();
       setTimeout(function () {
         process.exit(0);
-      }, 1000);
+      }, 200);
     }
   }]);
 

@@ -5,6 +5,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.addLoan = addLoan;
 exports.addBid = addBid;
+exports.initState = initState;
 var ADD_LOAN = exports.ADD_LOAN = 'ADD_LOAN';
 function addLoan(loan) {
   var loanJson = loan.toJson();
@@ -18,4 +19,13 @@ function addBid(loan, bid) {
   loanJson.type = ADD_BID;
   loanJson.bid = bid;
   return loanJson;
+}
+
+var INIT_STATE = exports.INIT_STATE = 'INIT_STATE';
+function initState(portfolio) {
+  var portfolioJson = {
+    portfolio: portfolio.toJson()
+  };
+  portfolioJson.type = INIT_STATE;
+  return portfolioJson;
 }

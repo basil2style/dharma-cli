@@ -53,6 +53,8 @@ var Investor = function () {
         this.portfolio = new _Portfolio2.default(store, this.dharma.web3);
       }
 
+      this.store.dispatch((0, _actions.initState)(this.portfolio));
+
       this.createdEvent = await this.dharma.loans.events.created();
       this.createdEvent.watch(async function (err, result) {
         var loan = await this.dharma.loans.get(result.args.uuid);
@@ -267,10 +269,6 @@ var Investor = function () {
         this.portfolio = new _Portfolio2.default(this.dharma.web3);
       }
 
-      this.portfolio.forEachInvestment(function (investment) {
-        this.store.dispatch((0, _actions.addLoan)(investment.loan));
-      }.bind(this));
-
       return this.portfolio;
     }
   }, {
@@ -281,14 +279,7 @@ var Investor = function () {
   }, {
     key: 'collect',
     value: async function collect(uuid) {
-      var portfolio = void 0;
-      if (!this.portfolio) {
-        portfolio = await this.loadPortfolio();
-      } else {
-        portfolio = this.portfolio;
-      }
-
-      var investment = portfolio.getInvestment(uuid);
+      var investment = this.portfolio.getInvestment(uuid);
       await investment.loan.redeemValue(investment.getInvestor());
     }
   }], [{

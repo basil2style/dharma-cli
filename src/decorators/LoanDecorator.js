@@ -44,13 +44,13 @@ var LoanDecorator = function () {
     key: "principal",
     value: function principal() {
       var principalDecimal = this.loan.principal.div(decimals).toFixed(2);
-      return principalDecimal.toString();
+      return "\u039E" + principalDecimal.toString();
     }
   }, {
     key: "attestorFee",
     value: function attestorFee() {
-      var attestorFeeDecimal = this.loan.attestorFee.div(decimals).toFixed(2);
-      return attestorFeeDecimal.toString();
+      var attestorFeeDecimal = this.loan.attestorFee.div(decimals).toFixed(4);
+      return "\u039E" + attestorFeeDecimal.toString();
     }
   }, {
     key: "defaultRisk",

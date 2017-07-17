@@ -85,18 +85,6 @@ var Portfolio = function () {
       return riskProfile;
     }
   }, {
-    key: 'setPortfolioUpdateCallback',
-    value: function setPortfolioUpdateCallback(callback) {
-      this.portfolioUpdateCallback = callback;
-    }
-  }, {
-    key: 'onPortfolioUpdate',
-    value: function onPortfolioUpdate() {
-      if (this.portfolioUpdateCallback) {
-        this.portfolioUpdateCallback();
-      }
-    }
-  }, {
     key: 'getTotalCash',
     value: async function getTotalCash() {
       var _this2 = this;
@@ -217,14 +205,20 @@ var Portfolio = function () {
       }
     }
   }, {
-    key: 'save',
-    value: async function save() {
+    key: 'toJson',
+    value: function toJson() {
       var raw = {};
 
       Object.keys(this.investments).forEach(function (uuid) {
         raw[uuid] = this.investments[uuid].toJson();
       }.bind(this));
 
+      return raw;
+    }
+  }, {
+    key: 'save',
+    value: async function save() {
+      var raw = this.toJson();
       await _fsExtra2.default.outputJson(PORTFOLIO_STORE_FILE, raw);
     }
   }, {
@@ -241,8 +235,8 @@ var Portfolio = function () {
     key: 'stopWatchingEvents',
     value: async function stopWatchingEvents() {
       for (var uuid in this.investments) {
-        var investment = this.investments[uuid];
-        await investment.stopWatchingEvents();
+        var investment = this.getInvestment(uuid);
+        // await investment.stopWatchingEvents();
       }
     }
   }], [{
