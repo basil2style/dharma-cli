@@ -61,7 +61,8 @@ var Investor = function () {
       }
 
       this.store.dispatch((0, _actions.log)('success', 'Portfolio loaded.'));
-      this.store.dispatch((0, _actions.initState)(this.portfolio));
+      var initialStateAction = await (0, _actions.initState)(this.portfolio);
+      this.store.dispatch(initialStateAction);
 
       this.store.dispatch((0, _actions.log)('info', "Listening for new loan requests..."));
 
@@ -88,12 +89,12 @@ var Investor = function () {
 
           this.portfolio.addInvestment(investment);
 
-          this.refreshInvestment(loan.uuid);
+          this.refreshInvestment(investment);
         }
       }.bind(this));
 
-      this.portfolio.getInvestments().forEach(async function (uuid) {
-        this.refreshInvestment(uuid);
+      this.portfolio.getInvestments().forEach(async function (investment) {
+        this.refreshInvestment(investment);
       }.bind(this));
 
       this.totalCashListener = this.web3.eth.filter('latest');
@@ -113,8 +114,7 @@ var Investor = function () {
     }
   }, {
     key: 'refreshInvestment',
-    value: async function refreshInvestment(uuid) {
-      var investment = this.portfolio.getInvestment(uuid);
+    value: async function refreshInvestment(investment) {
       var state = investment.getState();
 
       switch (state) {
@@ -224,7 +224,10 @@ var Investor = function () {
           investment.setTermBeginDate(new Date().toJSON());
           investment.setState(_Constants.ACCEPTED_STATE);
 
+          var portfolioSummary = await _this.portfolio.getSummary();
+
           _this.store.dispatch((0, _actions.addLoan)(investment.loan));
+          _this.store.dispatch(updatePortfolioSummary(portfolioSummary));
 
           await _this.savePortfolio();
         });

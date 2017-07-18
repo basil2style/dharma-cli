@@ -8,6 +8,7 @@ exports.displayTerms = displayTerms;
 exports.initState = initState;
 exports.log = log;
 exports.updateTotalCash = updateTotalCash;
+exports.updatePortfolioSummary = updatePortfolioSummary;
 var ADD_INVESTMENT = exports.ADD_INVESTMENT = 'ADD_LOAN';
 function addInvestment(investment) {
   var investmentJson = investment.toJson();
@@ -35,12 +36,14 @@ function displayTerms(index) {
 }
 
 var INIT_STATE = exports.INIT_STATE = 'INIT_STATE';
-function initState(portfolio) {
-  var portfolioJson = {
-    portfolio: portfolio.toJson()
+async function initState(portfolio) {
+  var summary = await portfolio.getSummary();
+  var portfolioJson = portfolio.toJson();
+  return {
+    type: INIT_STATE,
+    summary: summary,
+    portfolio: portfolioJson
   };
-  portfolioJson.type = INIT_STATE;
-  return portfolioJson;
 }
 
 var LOG_MESSAGE = exports.LOG_MESSAGE = 'LOG_MESSAGE';
@@ -77,5 +80,16 @@ function updateTotalCash(totalCash) {
   return {
     type: UPDATE_TOTAL_CASH,
     totalCash: totalCash
+  };
+}
+
+var UPDATE_PORTFOLIO_SUMMARY = exports.UPDATE_PORTFOLIO_SUMMARY = 'UPDATE_PORTFOLIO_SUMMARY';
+function updatePortfolioSummary(summary) {
+  return {
+    type: UPDATE_PORTFOLIO_SUMMARY,
+    principalOutstanding: summary.principalOutstanding,
+    interestEarned: summary.interestEarned,
+    totalCash: summary.totalCash,
+    defaultedValue: summary.defaultedValue
   };
 }

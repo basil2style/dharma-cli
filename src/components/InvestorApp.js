@@ -28,6 +28,10 @@ var _CashAvailable = require('./CashAvailable');
 
 var _CashAvailable2 = _interopRequireDefault(_CashAvailable);
 
+var _PortfolioSummary = require('./PortfolioSummary');
+
+var _PortfolioSummary2 = _interopRequireDefault(_PortfolioSummary);
+
 var _blessed = require('blessed');
 
 var _blessed2 = _interopRequireDefault(_blessed);
@@ -68,6 +72,7 @@ var InvestorApp = function () {
       this.cashAvailable = new _CashAvailable2.default();
       this.logs = new _Logs2.default();
       this.riskBreakdownChart = new _RiskBreakdownChart2.default();
+      this.portfolioSummary = new _PortfolioSummary2.default();
 
       // Adding a way to quit the program
       this.screen.key(['escape', 'q', 'C-c'], this.exit);
@@ -77,6 +82,7 @@ var InvestorApp = function () {
       this.screen.append(this.logs.getNode());
       this.screen.append(this.riskBreakdownChart.getNode());
       this.screen.append(this.cashAvailable.getNode());
+      this.screen.append(this.portfolioSummary.getNode());
 
       this.screen.render();
       this.screen.enableKeys();
@@ -97,9 +103,10 @@ var InvestorApp = function () {
         this.logs.render(state.logs);
         this.riskBreakdownChart.render(state.investments);
         this.cashAvailable.render(state.totalCash, this.wallet.getAddress());
+        this.portfolioSummary.render(state.portfolioSummary);
         this.screen.render();
       } catch (err) {
-        console.log(err);
+        // console.log(err)
       }
     }
   }, {

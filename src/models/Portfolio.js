@@ -54,6 +54,22 @@ var Portfolio = function () {
       this.investments[uuid] = investment;
     }
   }, {
+    key: 'getSummary',
+    value: async function getSummary() {
+      var principalOutstanding = await this.getTotalOutstandingPrincipal();
+      var interestEarned = await this.getTotalInterestEarned();
+      var cash = await this.getTotalCash();
+      var defaulted = await this.getTotalDefaultedValue();
+
+      var summary = {
+        principalOutstanding: principalOutstanding,
+        interestEarned: interestEarned,
+        totalCash: cash,
+        defaultedValue: defaulted
+      };
+      return summary;
+    }
+  }, {
     key: 'getTotalCash',
     value: async function getTotalCash() {
       var _this = this;
@@ -96,71 +112,92 @@ var Portfolio = function () {
       return totalValue;
     }
   }, {
-    key: 'getLoans',
-    value: function getLoans() {
+    key: 'getInvestments',
+    value: function getInvestments() {
       var _this2 = this;
 
       var currentInvestments = _lodash2.default.filter(Object.keys(this.investments), function (uuid) {
         var investment = _this2.investments[uuid];
-        if (investment.balance.gt(0)) {
+        var balance = new _bignumber2.default(investment.balance);
+        if (balance.gt(0)) {
           return true;
         }
       });
 
       return _lodash2.default.map(currentInvestments, function (uuid) {
-        return _this2.investments[uuid].loan;
+        return _this2.investments[uuid];
       });
     }
   }, {
-    key: 'getLoansOutstanding',
-    value: async function getLoansOutstanding() {
-      var loans = this.getLoans();
-      var outstandingLoans = [];
-      for (var i = 0; i < loans.length; i++) {
-        var loan = loans[i];
-        var status = await loan.servicing.getRepaymentStatus();
+    key: 'getInvestmentsOutstanding',
+    value: async function getInvestmentsOutstanding() {
+      var investments = this.getInvestments();
+      var outstandingInvestments = [];
+      for (var i = 0; i < investments.length; i++) {
+        var investment = investments[i];
+        var status = await investment.loan.servicing.getRepaymentStatus();
         if (status !== 'REPAID') {
-          outstandingLoans.push(loan);
+          outstandingInvestments.push(investment);
         }
       }
-      return outstandingLoans;
+      return outstandingInvestments;
     }
   }, {
-    key: 'getDelinquentLoans',
-    value: async function getDelinquentLoans() {
-      var loans = this.getLoans();
-      var delinquentLoans = [];
-      for (var i = 0; i < loans.length; i++) {
-        var loan = loans[i];
-        var status = await loan.servicing.getRepaymentStatus();
+    key: 'getTotalOutstandingPrincipal',
+    value: async function getTotalOutstandingPrincipal() {
+      var investmentsOutstanding = await this.getInvestmentsOutstanding();
+      var totalPrincipal = new _bignumber2.default(0);
+      investmentsOutstanding.forEach(function (investment) {
+        totalPrincipal = totalPrincipal.plus(investment.balance);
+      });
+      return totalPrincipal;
+    }
+  }, {
+    key: 'getDelinquentInvestments',
+    value: async function getDelinquentInvestments() {
+      var investments = this.getInvestments();
+      var delinquentInvestments = [];
+      for (var i = 0; i < investments.length; i++) {
+        var investment = investments[i];
+        var status = await investment.loan.servicing.getRepaymentStatus();
         if (status === 'DELINQUENT') {
-          delinquentLoans.push(loan);
+          delinquentInvestments.push(loan);
         }
       }
-      return delinquentLoans;
+      return delinquentInvestments;
     }
   }, {
-    key: 'getDefaultedLoans',
-    value: async function getDefaultedLoans() {
-      var loans = this.getLoans();
-      var defaultedLoans = [];
-      for (var i = 0; i < loans.length; i++) {
-        var loan = loans[i];
-        var status = await loan.servicing.getRepaymentStatus();
+    key: 'getDefaultedInvestments',
+    value: async function getDefaultedInvestments() {
+      var investments = this.getInvestments();
+      var defaultedInvestments = [];
+      for (var i = 0; i < investments.length; i++) {
+        var investment = investments[i];
+        var status = await investment.loan.servicing.getRepaymentStatus();
         if (status === 'DEFAULT') {
-          defaultedLoans.push(loan);
+          defaultedInvestments.push(loan);
         }
       }
-      return defaultedLoans;
+      return defaultedInvestments;
+    }
+  }, {
+    key: 'getTotalDefaultedValue',
+    value: async function getTotalDefaultedValue() {
+      var defaultedInvestments = await this.getDefaultedInvestments();
+      var totalValue = new _bignumber2.default(0);
+      defaultedInvestments.forEach(function (investment) {
+        totalValue = totalValue.plus(investment.balance);
+      });
+      return totalValue;
     }
   }, {
     key: 'getTotalInterestEarned',
     value: async function getTotalInterestEarned() {
-      var loans = this.getLoans();
+      var investments = this.getInvestments();
       var totalInterest = new _bignumber2.default(0);
-      for (var i = 0; i < loans.length; i++) {
-        var loan = loans[i];
-        var interest = await loan.servicing.getInterestEarnedToDate(new Date());
+      for (var i = 0; i < investments.length; i++) {
+        var investment = investments[i];
+        var interest = await investment.loan.servicing.getInterestEarnedToDate(new Date());
 
         totalInterest = totalInterest.add(interest);
       }
@@ -194,11 +231,6 @@ var Portfolio = function () {
     key: 'getInvestment',
     value: function getInvestment(uuid) {
       return this.investments[uuid];
-    }
-  }, {
-    key: 'getInvestments',
-    value: function getInvestments() {
-      return Object.keys(this.investments);
     }
   }, {
     key: 'stopWatchingEvents',
