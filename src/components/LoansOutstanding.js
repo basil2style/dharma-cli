@@ -18,6 +18,10 @@ var _nodeEmoji = require('node-emoji');
 
 var _nodeEmoji2 = _interopRequireDefault(_nodeEmoji);
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -48,10 +52,15 @@ var tableStyle = {
 var headers = ['UUID', 'BORROWER', 'PRINCIPAL', 'INTEREST', 'ATTESTOR', 'ATTESTOR FEE', 'DEFAULT RISK'];
 
 var LoansOutstanding = function () {
-  function LoansOutstanding() {
+  function LoansOutstanding(onLoanSelect) {
     _classCallCheck(this, LoansOutstanding);
 
     this.table = _blessedContrib2.default.table(tableStyle);
+    this.onLoanSelect = onLoanSelect;
+    this.table.rows.on('select item', function (item, index) {
+      this.onLoanSelect(index);
+    }.bind(this));
+    this.loans = [];
   }
 
   _createClass(LoansOutstanding, [{
@@ -62,6 +71,9 @@ var LoansOutstanding = function () {
   }, {
     key: 'render',
     value: function render(loans) {
+      if (_lodash2.default.isEqual(this.loans, loans)) return;
+
+      this.loans = loans;
       var loanList = [];
       loans.forEach(function (loan) {
         var decorator = new _LoanDecorator2.default(loan);

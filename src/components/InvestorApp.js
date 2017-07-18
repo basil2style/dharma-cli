@@ -12,9 +12,19 @@ var _LoansOutstanding = require('./LoansOutstanding');
 
 var _LoansOutstanding2 = _interopRequireDefault(_LoansOutstanding);
 
+var _Terms = require('./Terms');
+
+var _Terms2 = _interopRequireDefault(_Terms);
+
+var _Logs = require('./Logs');
+
+var _Logs2 = _interopRequireDefault(_Logs);
+
 var _blessed = require('blessed');
 
 var _blessed2 = _interopRequireDefault(_blessed);
+
+var _actions = require('../actions/actions');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -26,6 +36,7 @@ var InvestorApp = function () {
 
     this.investor = investor;
 
+    this.onLoanSelect = this.onLoanSelect.bind(this);
     this.onStateChange = this.onStateChange.bind(this);
     this.errorCallback = this.errorCallback.bind(this);
     this.exit = this.exit.bind(this);
@@ -43,12 +54,17 @@ var InvestorApp = function () {
         smartCSR: true
       });
 
-      this.loansOutstanding = new _LoansOutstanding2.default();
+      this.loansOutstanding = new _LoansOutstanding2.default(this.onLoanSelect);
+      this.terms = new _Terms2.default();
+      this.logs = new _Logs2.default();
 
       // Adding a way to quit the program
       this.screen.key(['escape', 'q', 'C-c'], this.exit);
 
       this.screen.append(this.loansOutstanding.getNode());
+      this.screen.append(this.terms.getNode());
+      this.screen.append(this.logs.getNode());
+
       this.screen.render();
       this.screen.enableKeys();
 
@@ -63,7 +79,14 @@ var InvestorApp = function () {
     value: function onStateChange() {
       var state = this.store.getState();
       this.loansOutstanding.render(state.loans);
+      this.terms.render(state.visibleTerms, state.loans);
+      this.logs.render(state.logs);
       this.screen.render();
+    }
+  }, {
+    key: 'onLoanSelect',
+    value: function onLoanSelect(index) {
+      this.store.dispatch((0, _actions.displayTerms)(index));
     }
   }, {
     key: 'errorCallback',

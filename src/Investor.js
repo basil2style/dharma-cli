@@ -47,13 +47,20 @@ var Investor = function () {
     value: async function startDaemon(store, errorCallback) {
       this.store = store;
 
+      this.store.dispatch((0, _actions.log)('info', "Loading portfolio..."));
+
       try {
         this.portfolio = await this.loadPortfolio();
       } catch (err) {
+        this.store.dispatch((0, _actions.log)('info', "No portfolio found on disk."));
+        this.store.dispatch((0, _actions.log)('info', "Creating portfolio..."));
         this.portfolio = new _Portfolio2.default(store, this.dharma.web3);
       }
 
+      this.store.dispatch((0, _actions.log)('success', 'Portfolio loaded.'));
       this.store.dispatch((0, _actions.initState)(this.portfolio));
+
+      this.store.dispatch((0, _actions.log)('info', "Listening for new loan requests..."));
 
       this.createdEvent = await this.dharma.loans.events.created();
       this.createdEvent.watch(async function (err, result) {

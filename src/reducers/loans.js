@@ -30,7 +30,8 @@ var loans = function loans() {
           },
           attestor: loan.attestor,
           attestorFee: loan.attestorFee,
-          defaultRisk: loan.defaultRisk
+          defaultRisk: loan.defaultRisk,
+          termBeginTimestamp: loan.termBeginTimestamp
         };
       });
       break;
@@ -49,7 +50,8 @@ var loans = function loans() {
         },
         attestor: action.attestor,
         attestorFee: action.attestorFee,
-        defaultRisk: action.defaultRisk
+        defaultRisk: action.defaultRisk,
+        termBeginTimestamp: action.termBeginTimestamp
       }]);
       break;
     default:
