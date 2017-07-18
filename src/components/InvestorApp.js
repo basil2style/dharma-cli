@@ -20,6 +20,14 @@ var _Logs = require('./Logs');
 
 var _Logs2 = _interopRequireDefault(_Logs);
 
+var _RiskBreakdownChart = require('./RiskBreakdownChart');
+
+var _RiskBreakdownChart2 = _interopRequireDefault(_RiskBreakdownChart);
+
+var _CashAvailable = require('./CashAvailable');
+
+var _CashAvailable2 = _interopRequireDefault(_CashAvailable);
+
 var _blessed = require('blessed');
 
 var _blessed2 = _interopRequireDefault(_blessed);
@@ -35,6 +43,7 @@ var InvestorApp = function () {
     _classCallCheck(this, InvestorApp);
 
     this.investor = investor;
+    this.wallet = investor.wallet;
 
     this.onLoanSelect = this.onLoanSelect.bind(this);
     this.onStateChange = this.onStateChange.bind(this);
@@ -56,7 +65,9 @@ var InvestorApp = function () {
 
       this.loansOutstanding = new _LoansOutstanding2.default(this.onLoanSelect);
       this.terms = new _Terms2.default();
+      this.cashAvailable = new _CashAvailable2.default();
       this.logs = new _Logs2.default();
+      this.riskBreakdownChart = new _RiskBreakdownChart2.default();
 
       // Adding a way to quit the program
       this.screen.key(['escape', 'q', 'C-c'], this.exit);
@@ -64,6 +75,8 @@ var InvestorApp = function () {
       this.screen.append(this.loansOutstanding.getNode());
       this.screen.append(this.terms.getNode());
       this.screen.append(this.logs.getNode());
+      this.screen.append(this.riskBreakdownChart.getNode());
+      this.screen.append(this.cashAvailable.getNode());
 
       this.screen.render();
       this.screen.enableKeys();
@@ -77,11 +90,17 @@ var InvestorApp = function () {
   }, {
     key: 'onStateChange',
     value: function onStateChange() {
-      var state = this.store.getState();
-      this.loansOutstanding.render(state.loans);
-      this.terms.render(state.visibleTerms, state.loans);
-      this.logs.render(state.logs);
-      this.screen.render();
+      try {
+        var state = this.store.getState();
+        this.loansOutstanding.render(state.investments);
+        this.terms.render(state.visibleTerms, state.investments);
+        this.logs.render(state.logs);
+        this.riskBreakdownChart.render(state.investments);
+        this.cashAvailable.render(state.totalCash, this.wallet.getAddress());
+        this.screen.render();
+      } catch (err) {
+        console.log(err);
+      }
     }
   }, {
     key: 'onLoanSelect',

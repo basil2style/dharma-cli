@@ -70,7 +70,11 @@ var LoansOutstanding = function () {
     }
   }, {
     key: 'render',
-    value: function render(loans) {
+    value: function render(investments) {
+      var loans = investments.map(function (investment) {
+        return investment.loan;
+      });
+
       if (_lodash2.default.isEqual(this.loans, loans)) return;
 
       this.loans = loans;

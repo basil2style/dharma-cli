@@ -3,25 +3,27 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.addLoan = addLoan;
-exports.addBid = addBid;
+exports.addInvestment = addInvestment;
 exports.displayTerms = displayTerms;
 exports.initState = initState;
 exports.log = log;
-var ADD_LOAN = exports.ADD_LOAN = 'ADD_LOAN';
-function addLoan(loan) {
-  var loanJson = loan.toJson();
-  loanJson.type = ADD_LOAN;
-  return loanJson;
+exports.updateTotalCash = updateTotalCash;
+var ADD_INVESTMENT = exports.ADD_INVESTMENT = 'ADD_LOAN';
+function addInvestment(investment) {
+  var investmentJson = investment.toJson();
+  return {
+    type: ADD_INVESTMENT,
+    investment: investmentJson
+  };
 }
-
-var ADD_BID = exports.ADD_BID = 'ADD_BID';
-function addBid(loan, bid) {
-  var loanJson = loan.toJson();
-  loanJson.type = ADD_BID;
-  loanJson.bid = bid;
-  return loanJson;
-}
+//
+// export const ADD_BID = 'ADD_BID';
+// export function addBid(loan, bid) {
+//   let loanJson = loan.toJson();
+//   loanJson.type = ADD_BID;
+//   loanJson.bid = bid;
+//   return loanJson;
+// }
 
 var DISPLAY_TERMS = exports.DISPLAY_TERMS = 'DISPLAY_TERMS';
 function displayTerms(index) {
@@ -67,5 +69,13 @@ function log(type, message) {
   return {
     message: startTag + message + endTag,
     type: LOG_MESSAGE
+  };
+}
+
+var UPDATE_TOTAL_CASH = exports.UPDATE_TOTAL_CASH = 'UPDATE_TOTAL_CASH';
+function updateTotalCash(totalCash) {
+  return {
+    type: UPDATE_TOTAL_CASH,
+    totalCash: totalCash
   };
 }

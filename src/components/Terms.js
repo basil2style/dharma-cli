@@ -48,12 +48,13 @@ var Terms = function () {
     }
   }, {
     key: 'render',
-    value: function render(visibleTermsIndex, loans) {
-      if (visibleTermsIndex == this.currentIndex || loans.length == 0) return;
+    value: function render(visibleTermsIndex, investments) {
+      if (visibleTermsIndex == this.currentIndex || investments.length == 0) return;
 
       this.currentIndex = visibleTermsIndex;
-      var terms = loans[visibleTermsIndex].terms;
-      var decorator = new _TermsDecorator2.default(loans[visibleTermsIndex]);
+      var loan = investments[visibleTermsIndex].loan;
+      var terms = loan.terms;
+      var decorator = new _TermsDecorator2.default(loan);
       var termsList = ["Term: " + decorator.term(), "Term Start: " + decorator.startDate(), "Amortization: " + decorator.amortization(), "Compounded: No", "Repayment Grace Period: 2 weeks"];
 
       this.list.setItems(termsList);

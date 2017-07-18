@@ -37,9 +37,12 @@ var Investor = function () {
     _classCallCheck(this, Investor);
 
     this.dharma = dharma;
+    this.web3 = dharma.web3;
     this.wallet = wallet;
     this.decisionEngine = new DecisionEngine(dharma.web3);
     this.store = null;
+
+    this.totalCashListenerCallback = this.totalCashListenerCallback.bind(this);
   }
 
   _createClass(Investor, [{
@@ -92,6 +95,9 @@ var Investor = function () {
       this.portfolio.getInvestments().forEach(async function (uuid) {
         this.refreshInvestment(uuid);
       }.bind(this));
+
+      this.totalCashListener = this.web3.eth.filter('latest');
+      this.totalCashListener.watch(this.totalCashListenerCallback);
     }
   }, {
     key: 'stopDaemon',
@@ -266,6 +272,12 @@ var Investor = function () {
         investment.getEvent('termBeginEvent').stopWatching(function () {});
         investment.getEvent('bidsRejectedEvent').stopWatching(function () {});
       };
+    }
+  }, {
+    key: 'totalCashListenerCallback',
+    value: async function totalCashListenerCallback(err, block) {
+      var totalCash = await this.portfolio.getTotalCash();
+      this.store.dispatch((0, _actions.updateTotalCash)(totalCash));
     }
   }, {
     key: 'loadPortfolio',

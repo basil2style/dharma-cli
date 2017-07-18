@@ -54,46 +54,15 @@ var Portfolio = function () {
       this.investments[uuid] = investment;
     }
   }, {
-    key: 'getRiskProfile',
-    value: function getRiskProfile() {
-      var _this = this;
-
-      var riskTranches = ['0-20', '21-40', '41-60', '61-80', '81-100'];
-      var riskProfile = {};
-
-      var _loop = function _loop(i) {
-        var valueInvested = new _bignumber2.default(0);
-        var decimals = new _bignumber2.default(10 ** 18);
-        var trancheWidth = new _bignumber2.default(0.2);
-        var defaultRiskMin = trancheWidth.times(i).plus(0.01).times(decimals);
-        var defaultRiskMax = trancheWidth.times(i + 1).times(decimals);
-
-        Object.keys(_this.investments).forEach(function (uuid) {
-          var investment = _this.investments[uuid];
-          if (investment.loan.defaultRisk.gte(defaultRiskMin) && investment.loan.defaultRisk.lte(defaultRiskMax)) {
-            valueInvested = valueInvested.plus(investment.balance);
-          }
-        });
-
-        riskProfile[riskTranches[i]] = valueInvested;
-      };
-
-      for (var i = 0; i < 5; i++) {
-        _loop(i);
-      }
-
-      return riskProfile;
-    }
-  }, {
     key: 'getTotalCash',
     value: async function getTotalCash() {
-      var _this2 = this;
+      var _this = this;
 
       var investors = {};
       var totalCash = new _bignumber2.default(0);
 
       Object.keys(this.investments).forEach(function (uuid) {
-        var investor = _this2.investments[uuid].investor;
+        var investor = _this.investments[uuid].investor;
         if (!(investor in investors)) {
           investors[investor] = true;
         }
@@ -129,17 +98,17 @@ var Portfolio = function () {
   }, {
     key: 'getLoans',
     value: function getLoans() {
-      var _this3 = this;
+      var _this2 = this;
 
       var currentInvestments = _lodash2.default.filter(Object.keys(this.investments), function (uuid) {
-        var investment = _this3.investments[uuid];
+        var investment = _this2.investments[uuid];
         if (investment.balance.gt(0)) {
           return true;
         }
       });
 
       return _lodash2.default.map(currentInvestments, function (uuid) {
-        return _this3.investments[uuid].loan;
+        return _this2.investments[uuid].loan;
       });
     }
   }, {
