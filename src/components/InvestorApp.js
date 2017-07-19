@@ -76,6 +76,9 @@ var InvestorApp = function () {
 
       // Adding a way to quit the program
       this.screen.key(['escape', 'q', 'C-c'], this.exit);
+      this.screen.key(['down'], function () {
+        console.log("down");
+      });
 
       this.screen.append(this.loansOutstanding.getNode());
       this.screen.append(this.terms.getNode());
@@ -106,7 +109,7 @@ var InvestorApp = function () {
         this.portfolioSummary.render(state.portfolioSummary);
         this.screen.render();
       } catch (err) {
-        // console.log(err)
+        console.log(err);
       }
     }
   }, {

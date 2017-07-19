@@ -35,7 +35,6 @@ var tableStyle = {
   fg: 'white',
   selectedFg: 'white',
   selectedBg: '#007f00',
-  interactive: true,
   border: {
     type: 'line',
     fg: 'cyan'
@@ -45,11 +44,12 @@ var tableStyle = {
     fg: 'green'
   },
   keys: true,
+  vi: true,
   columnWidth: [14, 14, 10, 10, 14, 12, 12],
   columnSpacing: 6
 };
 
-var headers = ['UUID', 'BORROWER', 'PRINCIPAL', 'INTEREST', 'ATTESTOR', 'ATTESTOR FEE', 'DEFAULT RISK'];
+var headers = ['UUID', 'BORROWER', 'PRINCIPAL', 'INTEREST', 'DEFAULT RISK', 'STATUS', 'REPAID'];
 
 var LoansOutstanding = function () {
   function LoansOutstanding(onLoanSelect) {
@@ -61,6 +61,7 @@ var LoansOutstanding = function () {
       this.onLoanSelect(index);
     }.bind(this));
     this.loans = [];
+    this.table.focus();
   }
 
   _createClass(LoansOutstanding, [{
@@ -81,10 +82,9 @@ var LoansOutstanding = function () {
       var loanList = [];
       loans.forEach(function (loan) {
         var decorator = new _LoanDecorator2.default(loan);
-        loanList.push([decorator.uuid(), decorator.borrower(), decorator.principal(), decorator.interestRate(), decorator.attestor(), decorator.attestorFee(), decorator.defaultRisk()]);
+        loanList.push([decorator.uuid(), decorator.borrower(), decorator.principal(), decorator.interestRate(), decorator.defaultRisk()]);
       });
 
-      this.table.focus();
       this.table.setData({
         headers: headers,
         data: loanList

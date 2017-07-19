@@ -55,7 +55,7 @@ var Terms = function () {
       var loan = investments[visibleTermsIndex].loan;
       var terms = loan.terms;
       var decorator = new _TermsDecorator2.default(loan);
-      var termsList = ["Term: " + decorator.term(), "Term Start: " + decorator.startDate(), "Amortization: " + decorator.amortization(), "Compounded: No", "Repayment Grace Period: 2 weeks"];
+      var termsList = ["Term: " + decorator.term(), "Term Start: " + decorator.startDate(), "Amortization: " + decorator.amortization(), "Attestor: " + decorator.attestor(), "Attestor Fee: " + decorator.attestorFee(), "Compounded: No", "Repayment Grace Period: 2 weeks"];
 
       this.list.setItems(termsList);
     }

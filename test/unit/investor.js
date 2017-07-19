@@ -22,6 +22,10 @@ const walletStub = {
   }
 }
 
+const storeStub = {
+  dispatch: () => {}
+}
+
 describe("Investor", () => {
   let investor;
   let errorCallback = sinon.spy();
@@ -49,7 +53,7 @@ describe("Investor", () => {
   describe("startDaemon()", () => {
     before(async () => {
       mock();
-      await investor.startDaemon(errorCallback);
+      await investor.startDaemon(storeStub, errorCallback);
     })
 
     describe('undesirableLoan', () => {
@@ -129,7 +133,7 @@ describe("Investor", () => {
           return loanUtils.simulateAuction(borrower, loan, onLoanBroadcasted, onLoanReview, done);
         });
       })
-
+      
       it('should withdraw the remainder of the bid that is not accepted', (done) => {
         let balanceBefore;
         let acceptedBids = [{ bidder: ACCOUNTS[13], amount: web3.toWei(0.501, 'ether') }];
@@ -215,32 +219,41 @@ describe("Investor", () => {
               }).catch((err) => {
                 done(err);
               });
-          }, 6000)
+          }, 15000)
         });
       })
 
-      it("it should send whatever redeemable value there is to the user", (done) => {
-        borrower.getBestBidSet(loan).then((bestBidSet) => {
-          return loan.acceptBids(bestBidSet.bids)
-        }).then(() => {
-          return dharma.loans.events.valueRedeemed({ uuid: loan.uuid })
-        }).then((valueRedeemedEvent) => {
-          return valueRedeemedEvent.watch(async (err, result) => {
-            done();
+      describe('bids accepted', () => {
+        beforeEach(async () => {
+          let bestBidSet = await borrower.getBestBidSet(loan);
+          await loan.acceptBids(bestBidSet.bids)
+        })
+
+        it('should update amountRepaid if borrower repays', async () => {
+            await util.pause(5);
+            const result = await loan.repay(web3.toWei(0.55, 'ether'))
+            await util.pause(5);
+            const investment = investor.portfolio.getInvestment(loan.uuid);
+            expect(investment.amountRepaid.equals(web3.toWei(0.55, 'ether'))).to.be(true);
+        })
+
+        it("it should send whatever redeemable value there is to the user", (done) => {
+          dharma.loans.events.valueRedeemed({ uuid: loan.uuid }).then((valueRedeemedEvent) => {
+            valueRedeemedEvent.watch(async (err, result) => {
+              done();
+            })
+            return dharma.loans.events.repayment({ uuid: loan.uuid });
+          }).then((repaymentEvent) => {
+            return repaymentEvent.watch(async (err, result) => {
+              await investor.collect(loan.uuid);
+            })
+          }).then(() => {
+            return dharma.loans.events.termBegin({ uuid: loan.uuid });
+          }).then((termBeginEvent) => {
+            return loan.repay(web3.toWei(1, 'ether'));
           })
-        }).then(() => {
-          return dharma.loans.events.repayment({ uuid: loan.uuid });
-        }).then((repaymentEvent) => {
-          return repaymentEvent.watch(async (err, result) => {
-            await investor.collect(loan.uuid);
-          })
-        }).then(() => {
-          return dharma.loans.events.termBegin({ uuid: loan.uuid });
-        }).then((termBeginEvent) => {
-          return loan.repay(web3.toWei(1, 'ether'));
         })
       })
-
     })
   })
 

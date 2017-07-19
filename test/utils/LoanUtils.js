@@ -27,7 +27,7 @@ class LoanUtils {
       attestorFee: this.web3.toWei(0.001, 'ether'),
       defaultRisk: this.web3.toWei(0.323, 'ether'),
       auctionPeriodLength: 5,
-      reviewPeriodLength: 3
+      reviewPeriodLength: 10
     }
 
     for (let key in options) {

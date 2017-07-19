@@ -14,8 +14,10 @@ var Investment = function () {
     this.bids = [];
     this.events = {};
     this.withdrawn = false;
-    this.balance = null;
+    this.balance = 0;
+    this.amountRepaid = 0;
     this.termBeginDate = null;
+    this.status = null;
   }
 
   _createClass(Investment, [{
@@ -82,6 +84,26 @@ var Investment = function () {
     key: "getWithdrawn",
     value: function getWithdrawn() {
       return this.withdrawn;
+    }
+  }, {
+    key: "setAmountRepaid",
+    value: function setAmountRepaid(amountRepaid) {
+      this.amountRepaid = amountRepaid;
+    }
+  }, {
+    key: "getAmountRepaid",
+    value: function getAmountRepaid() {
+      return this.amountRepaid;
+    }
+  }, {
+    key: "setStatus",
+    value: function setStatus(status) {
+      this.status = status;
+    }
+  }, {
+    key: "getStatus",
+    value: function getStatus() {
+      return this.status;
     }
   }, {
     key: "stopWatchingEvents",

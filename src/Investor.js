@@ -149,7 +149,6 @@ var Investor = function () {
     key: 'setupReviewStateListeners',
     value: async function setupReviewStateListeners(investment) {
       var loan = investment.loan;
-
       var termBeginEvent = await loan.events.termBegin();
       var bidsRejectedEvent = await loan.events.bidsRejected();
       var bidsIgnoredEvent = await loan.events.reviewPeriodCompleted();
@@ -165,9 +164,9 @@ var Investor = function () {
   }, {
     key: 'refreshAcceptedState',
     value: async function refreshAcceptedState(investment) {
+      var loan = investment.loan;
       if (!investment.getWithdrawn()) {
         var bid = investment.getBids()[0];
-        var loan = investment.loan;
         var tokenBalance = await loan.balanceOf(bid.bidder);
         if (tokenBalance.lt(bid.amount)) {
           await loan.withdrawInvestment({ from: bid.bidder });
@@ -176,6 +175,9 @@ var Investor = function () {
           await this.savePortfolio();
         }
       }
+      var repaymentEvent = await loan.events.repayment();
+      repaymentEvent.watch(this.repaymentCallback(loan.uuid, repaymentEvent));
+      investment.addEvent('repaymentEvent', repaymentEvent);
     }
   }, {
     key: 'refreshRejectedState',
@@ -220,14 +222,15 @@ var Investor = function () {
             await loan.withdrawInvestment({ from: bid.bidder });
             investment.setWithdrawn(true);
           }
-
           investment.setTermBeginDate(new Date().toJSON());
           investment.setState(_Constants.ACCEPTED_STATE);
+          investment.setStatus('CURRENT');
+          await _this.refreshInvestment(investment);
 
           var portfolioSummary = await _this.portfolio.getSummary();
 
-          _this.store.dispatch((0, _actions.addLoan)(investment.loan));
-          _this.store.dispatch(updatePortfolioSummary(portfolioSummary));
+          _this.store.dispatch((0, _actions.addInvestment)(investment));
+          _this.store.dispatch((0, _actions.updatePortfolioSummary)(portfolioSummary));
 
           await _this.savePortfolio();
         });
@@ -274,6 +277,18 @@ var Investor = function () {
         });
         investment.getEvent('termBeginEvent').stopWatching(function () {});
         investment.getEvent('bidsRejectedEvent').stopWatching(function () {});
+      };
+    }
+  }, {
+    key: 'repaymentCallback',
+    value: function repaymentCallback(uuid, repaymentEvent) {
+      var _this = this;
+
+      return async function (err) {
+        var investment = _this.portfolio.getInvestment(uuid);
+        var amountRepaid = await investment.loan.amountRepaid();
+        investment.setAmountRepaid(amountRepaid);
+        if (amountRepaid.gte(investment.loan.servicing.totalOwed())) repaymentEvent.stopWatching(function () {});
       };
     }
   }, {
