@@ -52,8 +52,8 @@ var TermsDecorator = function () {
   }, {
     key: 'startDate',
     value: function startDate() {
-      var termBeginTimestamp = this.loan.termBeginTimestamp.times(1000);
-      var termBeginDate = new Date(termBeginTimestamp.toNumber());
+      var termBeginTimestamp = this.loan.termBeginTimestamp * 1000;
+      var termBeginDate = new Date(termBeginTimestamp);
       return termBeginDate.toString();
     }
   }, {

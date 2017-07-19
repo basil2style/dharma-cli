@@ -10,6 +10,8 @@ import expect from 'expect.js';
 import _ from 'lodash';
 import Util from '../utils/util';
 import mock from 'mock-fs';
+import { REPAYMENT_STATUS } from '../../src/Constants';
+import moment from 'moment';
 
 const util = new Util(web3);
 const loanUtils = new LoanUtils(web3);
@@ -133,7 +135,7 @@ describe("Investor", () => {
           return loanUtils.simulateAuction(borrower, loan, onLoanBroadcasted, onLoanReview, done);
         });
       })
-      
+
       it('should withdraw the remainder of the bid that is not accepted', (done) => {
         let balanceBefore;
         let acceptedBids = [{ bidder: ACCOUNTS[13], amount: web3.toWei(0.501, 'ether') }];

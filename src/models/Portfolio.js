@@ -247,7 +247,6 @@ var Portfolio = function () {
       try {
         raw = await _fsExtra2.default.readJson(PORTFOLIO_STORE_FILE);
       } catch (err) {
-        console.log(err);
         throw new Error('Portfolio store file does not exist.');
       }
 

@@ -24,6 +24,10 @@ var _babelCore = require('babel-core');
 
 var _actions = require('./actions/actions');
 
+var _nodeSchedule = require('node-schedule');
+
+var _nodeSchedule2 = _interopRequireDefault(_nodeSchedule);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -41,6 +45,7 @@ var Investor = function () {
     this.wallet = wallet;
     this.decisionEngine = new DecisionEngine(dharma.web3);
     this.store = null;
+    this.scheduledJobs = [];
 
     this.totalCashListenerCallback = this.totalCashListenerCallback.bind(this);
   }
@@ -84,8 +89,8 @@ var Investor = function () {
 
           var investment = new _Investment2.default(loan);
           investment.addBid(bid);
-          investment.setInvestor(bid.bidder);
-          investment.setState(_Constants.AUCTION_STATE);
+          investment.investor = bid.bidder;
+          investment.state = _Constants.AUCTION_STATE;
 
           this.portfolio.addInvestment(investment);
 
@@ -103,6 +108,7 @@ var Investor = function () {
   }, {
     key: 'stopDaemon',
     value: async function stopDaemon() {
+      this.stopRepaymentDateJobs();
       await this.portfolio.stopWatchingEvents();
       await this.savePortfolio();
 
@@ -113,9 +119,17 @@ var Investor = function () {
       }.bind(this));
     }
   }, {
+    key: 'stopRepaymentDateJobs',
+    value: function stopRepaymentDateJobs() {
+      this.scheduledJobs.forEach(function (job) {
+        job.cancel();
+      });
+      this.scheduledJobs = [];
+    }
+  }, {
     key: 'refreshInvestment',
     value: async function refreshInvestment(investment) {
-      var state = investment.getState();
+      var state = investment.state;
 
       switch (state) {
         case _Constants.AUCTION_STATE:
@@ -165,13 +179,13 @@ var Investor = function () {
     key: 'refreshAcceptedState',
     value: async function refreshAcceptedState(investment) {
       var loan = investment.loan;
-      if (!investment.getWithdrawn()) {
-        var bid = investment.getBids()[0];
+      if (!investment.withdrawn) {
+        var bid = investment.bids[0];
         var tokenBalance = await loan.balanceOf(bid.bidder);
         if (tokenBalance.lt(bid.amount)) {
           await loan.withdrawInvestment({ from: bid.bidder });
 
-          investment.setWithdrawn(true);
+          investment.withdrawn = true;
           await this.savePortfolio();
         }
       }
@@ -182,13 +196,13 @@ var Investor = function () {
   }, {
     key: 'refreshRejectedState',
     value: async function refreshRejectedState(investment) {
-      if (!investment.getWithdrawn()) {
-        var bid = investment.getBids()[0];
+      if (!investment.withdrawn) {
+        var bid = investment.bids[0];
         var loan = investment.loan;
 
         await loan.withdrawInvestment({ from: bid.bidder });
 
-        investment.setWithdrawn(true);
+        investment.withdrawn = true;
         await this.savePortfolio();
       }
     }
@@ -199,7 +213,7 @@ var Investor = function () {
 
       return async function (err) {
         auctionCompletedEvent.stopWatching(async function () {
-          _this.portfolio.getInvestment(uuid).setState(_Constants.REVIEW_STATE);
+          _this.portfolio.getInvestment(uuid).state = _Constants.REVIEW_STATE;
           await _this.savePortfolio();
         });
       };
@@ -207,24 +221,29 @@ var Investor = function () {
   }, {
     key: 'termBeginCallback',
     value: function termBeginCallback(uuid, termBeginEvent) {
+      var _this3 = this;
+
       var _this = this;
 
       return async function (err, result) {
         var investment = _this.portfolio.getInvestment(uuid);
         termBeginEvent.stopWatching(async function () {
-          var bid = investment.getBids()[0];
+          var bid = investment.bids[0];
           var loan = investment.loan;
 
           var tokenBalance = await loan.balanceOf(bid.bidder);
-          investment.setBalance(tokenBalance);
+          investment.balance = tokenBalance;
 
           if (tokenBalance.lt(bid.amount)) {
             await loan.withdrawInvestment({ from: bid.bidder });
-            investment.setWithdrawn(true);
+            investment.withdrawn = true;
           }
-          investment.setTermBeginDate(new Date().toJSON());
-          investment.setState(_Constants.ACCEPTED_STATE);
-          investment.setStatus('CURRENT');
+          investment.termBeginDate = new Date();
+          investment.state = _Constants.ACCEPTED_STATE;
+          investment.repaymentStatus = _Constants.REPAYMENT_STATUS.CURRENT;
+
+          _this3.setupRepaymentDateJobs(investment);
+
           await _this.refreshInvestment(investment);
 
           var portfolioSummary = await _this.portfolio.getSummary();
@@ -239,6 +258,19 @@ var Investor = function () {
       };
     }
   }, {
+    key: 'setupRepaymentDateJobs',
+    value: function setupRepaymentDateJobs(investment) {
+      var repaymentDates = investment.loan.servicing.getRepaymentDates();
+      for (var i = 0; i < repaymentDates.length; i++) {
+        var date = repaymentDates[i];
+        var job = _nodeSchedule2.default.scheduleJob(date, async function () {
+          var repaymentStatus = await investment.loan.servicing.getRepaymentStatus();
+          investment.repaymentStatus = repaymentStatus;
+        });
+        this.scheduledJobs.push(job);
+      }
+    }
+  }, {
     key: 'bidsRejectedCallback',
     value: function bidsRejectedCallback(uuid, bidsRejectedEvent) {
       var _this = this;
@@ -246,13 +278,13 @@ var Investor = function () {
       return function (err) {
         var investment = _this.portfolio.getInvestment(uuid);
         bidsRejectedEvent.stopWatching(async function () {
-          var bid = investment.getBids()[0];
+          var bid = investment.bids[0];
           var loan = investment.loan;
 
           await loan.withdrawInvestment({ from: bid.bidder });
 
-          investment.setWithdrawn(true);
-          investment.setState(_Constants.REJECTED_STATE);
+          investment.withdrawn = true;
+          investment.state = _Constants.REJECTED_STATE;
           await _this.savePortfolio();
         });
         investment.getEvent('termBeginEvent').stopWatching(function () {});
@@ -267,12 +299,12 @@ var Investor = function () {
       return function (err) {
         var investment = _this.portfolio.getInvestment(uuid);
         bidsIgnoredEvent.stopWatching(async function () {
-          var bid = investment.getBids()[0];
+          var bid = investment.bids[0];
           var loan = investment.loan;
           await loan.withdrawInvestment({ from: bid.bidder });
 
-          investment.setWithdrawn(true);
-          investment.setState(_Constants.REJECTED_STATE);
+          investment.withdrawn = true;
+          investment.state = _Constants.REJECTED_STATE;
           await _this.savePortfolio();
         });
         investment.getEvent('termBeginEvent').stopWatching(function () {});
@@ -287,7 +319,7 @@ var Investor = function () {
       return async function (err) {
         var investment = _this.portfolio.getInvestment(uuid);
         var amountRepaid = await investment.loan.amountRepaid();
-        investment.setAmountRepaid(amountRepaid);
+        investment.amountRepaid = amountRepaid;
         if (amountRepaid.gte(investment.loan.servicing.totalOwed())) repaymentEvent.stopWatching(function () {});
       };
     }

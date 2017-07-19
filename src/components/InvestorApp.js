@@ -76,9 +76,12 @@ var InvestorApp = function () {
 
       // Adding a way to quit the program
       this.screen.key(['escape', 'q', 'C-c'], this.exit);
-      this.screen.key(['down'], function () {
-        console.log("down");
-      });
+
+      // Hack to deal with bug related to duplicate emitKeyEvent function calls
+      // -- instead of using blessed's built in key listeners, we manually
+      // keep track of which item in the loan list is selected.
+      this.screen.key(['down'], this.loansOutstanding.selectDown);
+      this.screen.key(['up'], this.loansOutstanding.selectUp);
 
       this.screen.append(this.loansOutstanding.getNode());
       this.screen.append(this.terms.getNode());

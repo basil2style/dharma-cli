@@ -10,9 +10,9 @@ var _blessedContrib = require('blessed-contrib');
 
 var _blessedContrib2 = _interopRequireDefault(_blessedContrib);
 
-var _LoanDecorator = require('../decorators/LoanDecorator');
+var _InvestmentDecorator = require('../decorators/InvestmentDecorator');
 
-var _LoanDecorator2 = _interopRequireDefault(_LoanDecorator);
+var _InvestmentDecorator2 = _interopRequireDefault(_InvestmentDecorator);
 
 var _nodeEmoji = require('node-emoji');
 
@@ -43,13 +43,11 @@ var tableStyle = {
     bold: true,
     fg: 'green'
   },
-  keys: true,
-  vi: true,
-  columnWidth: [14, 14, 10, 10, 14, 12, 12],
+  columnWidth: [14, 14, 10, 14, 10, 14, 14],
   columnSpacing: 6
 };
 
-var headers = ['UUID', 'BORROWER', 'PRINCIPAL', 'INTEREST', 'DEFAULT RISK', 'STATUS', 'REPAID'];
+var headers = ['UUID', 'PRINCIPAL', 'INTEREST', 'DEFAULT RISK', 'BALANCE', 'REPAY STATUS', 'AMT REPAID'];
 
 var LoansOutstanding = function () {
   function LoansOutstanding(onLoanSelect) {
@@ -57,11 +55,12 @@ var LoansOutstanding = function () {
 
     this.table = _blessedContrib2.default.table(tableStyle);
     this.onLoanSelect = onLoanSelect;
-    this.table.rows.on('select item', function (item, index) {
-      this.onLoanSelect(index);
-    }.bind(this));
-    this.loans = [];
+    this.investments = [];
     this.table.focus();
+    this.selected = 0;
+
+    this.selectDown = this.selectDown.bind(this);
+    this.selectUp = this.selectUp.bind(this);
   }
 
   _createClass(LoansOutstanding, [{
@@ -70,25 +69,42 @@ var LoansOutstanding = function () {
       return this.table;
     }
   }, {
+    key: 'selectDown',
+    value: function selectDown() {
+      if (this.selected == this.investments.length - 1) return;
+
+      this.selected += 0.5;
+
+      if (this.selected % 1 === 0) {
+        this.onLoanSelect(this.selected);
+      }
+    }
+  }, {
+    key: 'selectUp',
+    value: function selectUp() {
+      if (this.selected == 0) return;
+
+      this.selected -= 0.5;
+
+      if (this.selected % 1 === 0) {
+        this.onLoanSelect(this.selected);
+      }
+    }
+  }, {
     key: 'render',
     value: function render(investments) {
-      var loans = investments.map(function (investment) {
-        return investment.loan;
-      });
-
-      if (_lodash2.default.isEqual(this.loans, loans)) return;
-
-      this.loans = loans;
-      var loanList = [];
-      loans.forEach(function (loan) {
-        var decorator = new _LoanDecorator2.default(loan);
-        loanList.push([decorator.uuid(), decorator.borrower(), decorator.principal(), decorator.interestRate(), decorator.defaultRisk()]);
+      this.investments = investments;
+      var investmentList = [];
+      investments.forEach(function (investment) {
+        var decorator = new _InvestmentDecorator2.default(investment);
+        investmentList.push([decorator.uuid(), decorator.principal(), decorator.interestRate(), decorator.defaultRisk(), decorator.balance(), decorator.repaymentStatus(), decorator.amountRepaid()]);
       });
 
       this.table.setData({
         headers: headers,
-        data: loanList
+        data: investmentList
       });
+      this.table.rows.select(this.selected);
     }
   }]);
 

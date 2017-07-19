@@ -9,9 +9,16 @@ exports.initState = initState;
 exports.log = log;
 exports.updateTotalCash = updateTotalCash;
 exports.updatePortfolioSummary = updatePortfolioSummary;
-var ADD_INVESTMENT = exports.ADD_INVESTMENT = 'ADD_LOAN';
+var ADD_INVESTMENT = exports.ADD_INVESTMENT = 'ADD_INVESTMENT';
 function addInvestment(investment) {
-  var investmentJson = investment.toJson();
+
+  var investmentJson = void 0;
+  try {
+    investmentJson = investment.toJson();
+  } catch (err) {
+    console.log(err);
+  }
+
   return {
     type: ADD_INVESTMENT,
     investment: investmentJson

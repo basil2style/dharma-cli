@@ -34,6 +34,7 @@
     "mocha": "^3.4.2",
     "moment": "^2.18.1",
     "node-emoji": "^1.7.0",
+    "node-schedule": "^1.2.3",
     "opn": "^5.1.0",
     "prompt": "^1.0.0",
     "random-js": "^1.0.8",
