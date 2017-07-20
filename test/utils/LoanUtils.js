@@ -11,7 +11,7 @@ class LoanUtils {
     this.dharma = new Dharma(web3);
   }
 
-  async generateSignedLoanData(options={}) {
+  async generateSignedLoan(options={}) {
     let loanData = {
       uuid: this.web3.sha3(uuidV4()),
       borrower: ACCOUNTS[0],
@@ -36,8 +36,7 @@ class LoanUtils {
 
     const loan = await this.dharma.loans.create(loanData);
     await loan.signAttestation();
-    loanData.signature = loan.signature;
-    return loanData;
+    return loan;
   }
 
   async simulateAuction(borrower, loan, deployedCallback, reviewCallback, done, successful=true) {

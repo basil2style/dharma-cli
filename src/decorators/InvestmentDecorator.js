@@ -64,6 +64,12 @@ var InvestmentDecorator = function () {
     value: function repaymentStatus() {
       return this.investment.repaymentStatus;
     }
+  }], [{
+    key: "individualRepayment",
+    value: function individualRepayment(amount) {
+      var individualRepaymentEther = amount.div(decimals).toFixed(2);
+      return "\u039E" + individualRepaymentEther.toString();
+    }
   }]);
 
   return InvestmentDecorator;

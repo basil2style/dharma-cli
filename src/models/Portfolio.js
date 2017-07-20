@@ -32,6 +32,8 @@ var _Constants2 = _interopRequireDefault(_Constants);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var PORTFOLIO_STORE_FILE = _os2.default.homedir() + '/.dharma/portfolio.json';
@@ -39,15 +41,28 @@ var PORTFOLIO_STORE_FILE = _os2.default.homedir() + '/.dharma/portfolio.json';
 var Portfolio = function () {
   function Portfolio(web3) {
     var investments = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var bids = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
     _classCallCheck(this, Portfolio);
 
     this.web3 = web3;
     this.investments = investments;
-    this.portfolioUpdateCallback = null;
+    this.bids = bids;
   }
 
   _createClass(Portfolio, [{
+    key: 'addBid',
+    value: function addBid(bid) {
+      var uuid = bid.loan.uuid;
+      this.bids[uuid] = bid;
+    }
+  }, {
+    key: 'removeBid',
+    value: function removeBid(bid) {
+      var uuid = bid.loan.uuid;
+      delete this.bids[uuid];
+    }
+  }, {
     key: 'addInvestment',
     value: function addInvestment(investment) {
       var uuid = investment.loan.uuid;
@@ -204,19 +219,19 @@ var Portfolio = function () {
       return totalInterest;
     }
   }, {
-    key: 'forEachInvestment',
-    value: function forEachInvestment(callback) {
-      for (var uuid in this.investments) {
-        callback(this.getInvestment(uuid));
-      }
-    }
-  }, {
     key: 'toJson',
     value: function toJson() {
-      var raw = {};
+      var raw = {
+        investments: {},
+        bids: {}
+      };
 
       Object.keys(this.investments).forEach(function (uuid) {
-        raw[uuid] = this.investments[uuid].toJson();
+        raw.investments[uuid] = this.investments[uuid].toJson();
+      }.bind(this));
+
+      Object.keys(this.bids).forEach(function (uuid) {
+        raw.bids[uuid] = this.bids[uuid].toJson();
       }.bind(this));
 
       return raw;
@@ -236,8 +251,13 @@ var Portfolio = function () {
     key: 'stopWatchingEvents',
     value: async function stopWatchingEvents() {
       for (var uuid in this.investments) {
-        var investment = this.getInvestment(uuid);
-        // await investment.stopWatchingEvents();
+        var investment = this.investments[uuid];
+        await investment.stopWatchingEvents();
+      }
+
+      for (var _uuid in this.bids) {
+        var bid = this.bids[_uuid];
+        await bid.stopWatchingEvents();
       }
     }
   }], [{
@@ -251,13 +271,20 @@ var Portfolio = function () {
       }
 
       var investments = {};
+      var bids = {};
 
-      var promises = Object.keys(raw).map(async function (uuid) {
-        investments[uuid] = await _Investment2.default.fromJson(raw[uuid], dharma);
+      var loadInvestmentPromises = Object.keys(raw.investments).map(async function (uuid) {
+        investments[uuid] = await _Investment2.default.fromJson(raw.investments[uuid], dharma);
+      }.bind(this));
+      var loadBidPromises = Object.keys(raw.bids).map(async function (uuid) {
+        bids[uuid] = await Bid.fromJson(raw.bids[uuid], dharma);
       }.bind(this));
 
+      var promises = [].concat(_toConsumableArray(loadInvestmentPromises), _toConsumableArray(loadBidPromises));
+
       await Promise.all(promises);
-      return new Portfolio(dharma.web3, investments);
+
+      return new Portfolio(dharma.web3, investments, bids);
     }
   }]);
 

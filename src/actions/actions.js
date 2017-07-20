@@ -4,6 +4,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.addInvestment = addInvestment;
+exports.updateInvestment = updateInvestment;
 exports.displayTerms = displayTerms;
 exports.initState = initState;
 exports.log = log;
@@ -11,7 +12,6 @@ exports.updateTotalCash = updateTotalCash;
 exports.updatePortfolioSummary = updatePortfolioSummary;
 var ADD_INVESTMENT = exports.ADD_INVESTMENT = 'ADD_INVESTMENT';
 function addInvestment(investment) {
-
   var investmentJson = void 0;
   try {
     investmentJson = investment.toJson();
@@ -24,14 +24,21 @@ function addInvestment(investment) {
     investment: investmentJson
   };
 }
-//
-// export const ADD_BID = 'ADD_BID';
-// export function addBid(loan, bid) {
-//   let loanJson = loan.toJson();
-//   loanJson.type = ADD_BID;
-//   loanJson.bid = bid;
-//   return loanJson;
-// }
+
+var UPDATE_INVESTMENT = exports.UPDATE_INVESTMENT = 'UPDATE_INVESTMENT';
+function updateInvestment(investment) {
+  var investmentJson = void 0;
+  try {
+    investmentJson = investment.toJson();
+  } catch (err) {
+    console.log(err);
+  }
+
+  return {
+    type: UPDATE_INVESTMENT,
+    investment: investmentJson
+  };
+}
 
 var DISPLAY_TERMS = exports.DISPLAY_TERMS = 'DISPLAY_TERMS';
 function displayTerms(index) {

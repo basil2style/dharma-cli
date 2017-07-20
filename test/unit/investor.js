@@ -62,12 +62,10 @@ describe("Investor", () => {
       let loan;
 
       before(async () => {
-        const loanData = await loanUtils.generateSignedLoanData({
+        loan = await loanUtils.generateSignedLoan({
           principal: web3.toWei(4, 'ether'),
           defaultRisk: web3.toWei(0.85, 'ether')
         });
-
-        loan = await dharma.loans.create(loanData);
 
         investor.decisionEngine.decide = sinon.stub().returns(false);
 
@@ -98,11 +96,9 @@ describe("Investor", () => {
       let minInterestRate;
 
       beforeEach((done) => {
-        loanUtils.generateSignedLoanData({
+        loanUtils.generateSignedLoan({
           principal: web3.toWei(1, 'ether'),
           defaultRisk: web3.toWei(0.25, 'ether')
-        }).then((loanData) => {
-          return dharma.loans.create(loanData);
         }).then((loanObject) => {
           loan = loanObject;
           amount = web3.toWei(1, 'ether');
@@ -128,6 +124,7 @@ describe("Investor", () => {
               expect(investorBid.bidder).to.be(ACCOUNTS[13]);
               expect(investorBid.minInterestRate.equals(minInterestRate)).to.be(true);
             } catch (err) {
+              console.log(err);
               done(err)
             }
           }
@@ -240,17 +237,17 @@ describe("Investor", () => {
         })
 
         it("it should send whatever redeemable value there is to the user", (done) => {
-          dharma.loans.events.valueRedeemed({ uuid: loan.uuid }).then((valueRedeemedEvent) => {
+          loan.events.valueRedeemed().then((valueRedeemedEvent) => {
             valueRedeemedEvent.watch(async (err, result) => {
               done();
             })
-            return dharma.loans.events.repayment({ uuid: loan.uuid });
+            return loan.events.repayment({ uuid: loan.uuid });
           }).then((repaymentEvent) => {
             return repaymentEvent.watch(async (err, result) => {
               await investor.collect(loan.uuid);
             })
           }).then(() => {
-            return dharma.loans.events.termBegin({ uuid: loan.uuid });
+            return loan.events.termBegin({ uuid: loan.uuid });
           }).then((termBeginEvent) => {
             return loan.repay(web3.toWei(1, 'ether'));
           })
@@ -270,15 +267,12 @@ describe("Investor", () => {
       let loan;
 
       before(async () => {
-        const loanData = await loanUtils.generateSignedLoanData({
+        loan = await loanUtils.generateSignedLoan({
           principal: web3.toWei(4, 'ether'),
           defaultRisk: web3.toWei(0.85, 'ether')
         });
 
-        loan = await dharma.loans.create(loanData);
-
         loan.bid = sinon.spy();
-
       })
 
       it("should not invest in the loan", (done) => {
@@ -296,5 +290,4 @@ describe("Investor", () => {
       })
     });
   })
-
 })
