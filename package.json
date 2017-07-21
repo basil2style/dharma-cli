@@ -11,7 +11,8 @@
     "test": "npm run compile && mocha --timeout 120000 --compilers js:babel-core/register test/unit/investor.js",
     "borrow": "npm run compile && ENV=development dharma borrow",
     "authenticate": "npm run compile && ENV=development dharma authenticate",
-    "invest": "npm run compile && ENV=development dharma invest"
+    "invest": "npm run compile && ENV=development dharma invest",
+    "wallet": "npm run compile && ENV=development dharma wallet"
   },
   "author": "",
   "license": "ISC",

@@ -1,10 +1,14 @@
-"use strict";
+'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _bignumber = require("bignumber.js");
+var _bignumber = require('bignumber.js');
 
 var _bignumber2 = _interopRequireDefault(_bignumber);
+
+var _LoanDecorator = require('./LoanDecorator');
+
+var _LoanDecorator2 = _interopRequireDefault(_LoanDecorator);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -17,58 +21,56 @@ var InvestmentDecorator = function () {
     _classCallCheck(this, InvestmentDecorator);
 
     this.investment = investment;
+    this.loanDecorator = new _LoanDecorator2.default(investment.loan);
   }
 
   _createClass(InvestmentDecorator, [{
-    key: "uuid",
+    key: 'uuid',
     value: function uuid() {
-      return this.investment.loan.uuid.slice(0, 10) + "...";
+      return this.loanDecorator.uuid();
     }
   }, {
-    key: "borrower",
+    key: 'borrower',
     value: function borrower() {
-      return this.investment.loan.borrower.slice(0, 10) + "...";
+      return this.loanDecorator.borrower();
     }
   }, {
-    key: "interestRate",
+    key: 'interestRate',
     value: function interestRate() {
-      var interestRateDecimal = this.investment.loan.interestRate.div(decimals).times(100).toFixed(2);
-      return '%' + interestRateDecimal.toString();
+      return this.loanDecorator.interestRate();
     }
   }, {
-    key: "principal",
+    key: 'principal',
     value: function principal() {
-      var principalDecimal = this.investment.loan.principal.div(decimals).toFixed(2);
-      return "\u039E" + principalDecimal.toString();
+      return this.loanDecorator.principal();
     }
   }, {
-    key: "defaultRisk",
+    key: 'defaultRisk',
     value: function defaultRisk() {
-      var defaultRiskDecimal = this.investment.loan.defaultRisk.div(decimals).times(100).toFixed(2);
-      return '%' + defaultRiskDecimal.toString();
+      return this.loanDecorator.defaultRisk();
     }
   }, {
-    key: "amountRepaid",
+    key: 'amountRepaid',
     value: function amountRepaid() {
       var amountRepaidDecimal = this.investment.amountRepaid.div(decimals).toFixed(2);
-      return "\u039E" + amountRepaidDecimal.toString();
+      return '\u039E' + amountRepaidDecimal.toString();
     }
   }, {
-    key: "balance",
+    key: 'balance',
     value: function balance() {
       var balanceDecimal = this.investment.balance.div(decimals).toFixed(2);
       return balanceDecimal.toString();
     }
   }, {
-    key: "repaymentStatus",
+    key: 'repaymentStatus',
     value: function repaymentStatus() {
       return this.investment.repaymentStatus;
     }
   }], [{
-    key: "individualRepayment",
+    key: 'individualRepayment',
     value: function individualRepayment(amount) {
       var individualRepaymentEther = amount.div(decimals).toFixed(2);
-      return "\u039E" + individualRepaymentEther.toString();
+      return '\u039E' + individualRepaymentEther.toString();
     }
   }]);
 

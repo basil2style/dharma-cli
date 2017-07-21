@@ -80,9 +80,6 @@ var Investment = function () {
         var investment = new Investment(loan);
         investment.state = await loan.getState();
         investment.investor = json.investor;
-        json.bids.forEach(function (bid) {
-          investment.addBid(bid);
-        });
         investment.balance = new _bignumber2.default(json.balance);
         investment.amountRepaid = await loan.amountRepaid();
         if (json.termBeginTimestamp) investment.termBeginDate = new Date(json.termBeginTimestamp);

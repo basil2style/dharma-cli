@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  WalletFlow: {
+  LoadWalletFlow: {
     start: {
       type: 'confirm',
       name: 'confirmStart',
@@ -54,6 +54,45 @@ module.exports = {
       name: 'choice',
       message: 'Do you agree to these loan terms?',
       choices: ['Accept', 'Reject']
+    }
+  },
+
+  WalletFlow: {
+    mainMenu: {
+      type: 'list',
+      name: 'choice',
+      message: 'Main Menu:',
+      choices: ['Send Ether', 'Make Loan Repayment']
+    },
+
+    enterRecipient: {
+      type: 'input',
+      name: 'address',
+      message: 'Enter payment recipient:'
+    },
+
+    enterAmount: {
+      type: 'input',
+      name: 'amount',
+      message: 'How much Ether do you want to send?'
+    },
+
+    chooseLoan: function chooseLoan(options) {
+      return {
+        type: 'list',
+        name: 'choice',
+        message: 'Which loan would you like to make a repayment for?',
+        choices: options
+      };
+    },
+
+    chooseAmount: function chooseAmount(currentBalanceOwed) {
+      return {
+        type: 'list',
+        name: 'choice',
+        message: 'Enter repayment amount:',
+        choices: ['Current Balance Owed (' + currentBalanceOwed + ')', 'Other']
+      };
     }
   }
 };

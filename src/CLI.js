@@ -76,6 +76,10 @@ var _InvestorApp = require('./components/InvestorApp');
 
 var _InvestorApp2 = _interopRequireDefault(_InvestorApp);
 
+var _Liabilities = require('./models/Liabilities');
+
+var _Liabilities2 = _interopRequireDefault(_Liabilities);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -91,6 +95,104 @@ var CLI = function () {
   }
 
   _createClass(CLI, [{
+    key: 'walletFlow',
+    value: async function walletFlow() {
+      var address = this.wallet.getAddress();
+      var balance = await _Util2.default.getBalance(this.web3, address);
+
+      console.log('Ropsten Testnet Balance: \u039E' + balance);
+
+      var menu = await _inquirer2.default.prompt([_prompts.WalletFlow.mainMenu]);
+      var loader = void 0;
+      if (menu.choice === 'Send Ether') {
+        var recipient = void 0;
+        while (!recipient) {
+          var response = await _inquirer2.default.prompt([_prompts.WalletFlow.enterRecipient]);
+          if (!this.web3.isAddress(response.address)) {
+            console.log("Address is not a valid Ethereum address.");
+          } else {
+            recipient = response.address;
+          }
+        }
+
+        var amount = void 0;
+        while (!amount) {
+          var _response = await _inquirer2.default.prompt([_prompts.WalletFlow.enterAmount]);
+          var respondedAmount = this.web3.toWei(_response.amount, 'ether');
+          if (balance.lte(respondedAmount)) {
+            console.log("Your balance is too low :(");
+          } else {
+            amount = respondedAmount;
+          }
+        }
+
+        loader = new _cliSpinner.Spinner('Sending Ether to ' + recipient);
+        loader.setSpinnerString(18);
+        loader.start();
+
+        this.web3.eth.sendTransaction({ from: address, to: recipient, value: amount }, function (err, result) {
+          loader.stop(true);
+          if (err) {
+            console.error(err);
+            process.exit(1);
+          } else {
+            console.log("Transaction successfully broadcasted!");
+            console.log("Transaction: https://ropsten.etherscan.io/tx/" + result);
+          }
+        });
+      } else if (menu.choice === 'Make Loan Repayment') {
+        loader = new _cliSpinner.Spinner('Loading...');
+        loader.setSpinnerString(18);
+        loader.start();
+        var liabilities = await _Liabilities2.default.load(this.dharma);
+        loader.stop(true);
+
+        var options = [];
+        for (var _uuid in liabilities.loans) {
+          var _loan = liabilities.loans[_uuid];
+          var _decorator = new _LoanDecorator2.default(_loan);
+          var _currentBalanceOwed = await _decorator.currentBalanceOwed();
+          var loanStr = _uuid + " -- Principal: " + _decorator.principal() + " -- Current Balance Owed: " + _currentBalanceOwed;
+          options.push(loanStr);
+        }
+
+        var _response2 = await _inquirer2.default.prompt([_prompts.WalletFlow.chooseLoan(options)]);
+        var uuid = _response2.choice.substr(0, 66);
+        var loan = liabilities.loans[uuid];
+        var decorator = new _LoanDecorator2.default(loan);
+        var currentBalanceOwed = await decorator.currentBalanceOwed();
+
+        var _amount = void 0;
+        while (!_amount) {
+          var amountResponded = void 0;
+          _response2 = await _inquirer2.default.prompt([_prompts.WalletFlow.chooseAmount(currentBalanceOwed)]);
+          if (_response2.choice === 'Other') {
+            var _response3 = await _inquirer2.default.prompt([_prompts.WalletFlow.enterAmount]);
+            amountResponded = this.web3.toWei(_response3.amount, 'ether');
+          } else {
+            amountResponded = await loan.servicing.currentBalanceOwed();
+          }
+
+          if (balance.lte(amountResponded)) {
+            console.log("Your balance is too low :(");
+          } else {
+            _amount = amountResponded;
+          }
+        }
+
+        loader = new _cliSpinner.Spinner('Sending repayment to loan ' + uuid);
+        loader.setSpinnerString(18);
+        loader.start();
+
+        await loan.repay(_amount, { from: address });
+
+        loader.stop(true);
+        console.log("Repayment successful.");
+
+        process.exit(0);
+      }
+    }
+  }, {
     key: 'borrowFlow',
     value: async function borrowFlow(amount, unit) {
       var address = this.wallet.getAddress();
@@ -150,6 +252,8 @@ var CLI = function () {
   }, {
     key: 'loanReviewFlow',
     value: function loanReviewFlow(loan, loader) {
+      var _this = this;
+
       return async function (err, bestBidSet) {
         loader.stop(true);
 
@@ -176,7 +280,7 @@ var CLI = function () {
             loader.setSpinnerTitle("Accepting loan terms");
             loader.start();
 
-            await loan.acceptBids(bestBidSet.bids);
+            await _this.borrower.acceptLoanTerms(loan, bestBidSet.bids);
             loader.stop(true);
 
             console.log("Your loan has been funded and " + decorator.principal() + " ether has been transferred to " + "address " + loan.borrower);
@@ -230,7 +334,7 @@ var CLI = function () {
   }, {
     key: 'entry',
     value: async function entry(args) {
-      var validCommands = [null, 'borrow', 'authenticate', 'invest'];
+      var validCommands = [null, 'borrow', 'authenticate', 'invest', 'wallet'];
 
       var _commandLineCommands = (0, _commandLineCommands3.default)(validCommands),
           command = _commandLineCommands.command,
@@ -246,6 +350,9 @@ var CLI = function () {
         case "invest":
           await CLI.invest(argv);
           break;
+        case "wallet":
+          await CLI.wallet(argv);
+          break;
         default:
           // do something
           break;
@@ -254,13 +361,13 @@ var CLI = function () {
   }, {
     key: 'borrow',
     value: async function borrow(args) {
-      var optionDefinitions = [{ name: 'unit', alias: 'u', defaultValue: 'ether', type: String }, { name: 'wallet', alias: 'w', type: String }, { name: 'amount', alias: 'a', defaultOption: true, type: Number }];
+      var optionDefinitions = [{ name: 'unit', alias: 'u', defaultValue: 'ether', type: String }, { name: 'amount', alias: 'a', defaultOption: true, type: Number }];
 
       var params = (0, _commandLineArgs2.default)(optionDefinitions, {
         argv: args
       });
 
-      var cli = await CLI.init(params.wallet);
+      var cli = await CLI.init();
       await cli.borrowFlow(params.amount, params.unit);
     }
   }, {
@@ -274,6 +381,12 @@ var CLI = function () {
 
       var cli = await CLI.init();
       await cli.investFlow(params.engine);
+    }
+  }, {
+    key: 'wallet',
+    value: async function wallet(args) {
+      var cli = await CLI.init();
+      await cli.walletFlow();
     }
   }, {
     key: 'init',
@@ -300,17 +413,18 @@ var CLI = function () {
   }, {
     key: 'loadWalletFlow',
     value: async function loadWalletFlow(walletStoreFile) {
-      var choice = await _inquirer2.default.prompt([_prompts.WalletFlow.unlockOptions]);
+      var choice = await _inquirer2.default.prompt([_prompts.LoadWalletFlow.unlockOptions]);
 
       var wallet = void 0;
       if (choice.unlockChoice === 'Enter passphrase') {
         while (true) {
-          var answer = await _inquirer2.default.prompt([_prompts.WalletFlow.enterPassphrase]);
+          var answer = await _inquirer2.default.prompt([_prompts.LoadWalletFlow.enterPassphrase]);
 
           try {
             wallet = await _Wallet2.default.getWallet(answer.passphrase, walletStoreFile);
             console.log("Wallet unlocked!");
-            console.log("Address: " + wallet.getAddress());
+            console.log("Testnet Address: " + wallet.getAddress());
+
             break;
           } catch (err) {
             console.error("Incorrect passphrase.  Please try again.");
@@ -318,7 +432,7 @@ var CLI = function () {
         }
       } else {
         while (true) {
-          var _ref = await _inquirer2.default.prompt([_prompts.WalletFlow.enterMnemonic]),
+          var _ref = await _inquirer2.default.prompt([_prompts.LoadWalletFlow.enterMnemonic]),
               mnemonic = _ref.mnemonic;
 
           try {
@@ -344,7 +458,7 @@ var CLI = function () {
     value: async function passphraseFlow() {
       var passphrase = void 0;
       while (!passphrase) {
-        var passphraseAnswers = await _inquirer2.default.prompt([_prompts.WalletFlow.choosePassphrase, _prompts.WalletFlow.confirmPassphrase]);
+        var passphraseAnswers = await _inquirer2.default.prompt([_prompts.LoadWalletFlow.choosePassphrase, _prompts.LoadWalletFlow.confirmPassphrase]);
 
         if (passphraseAnswers.passphrase !== passphraseAnswers.passphraseConfirmation) {
           console.error("Confirmation does not match passphrase, try again.");
@@ -358,7 +472,7 @@ var CLI = function () {
   }, {
     key: 'generateWalletFlow',
     value: async function generateWalletFlow(walletStoreFile) {
-      await _inquirer2.default.prompt([_prompts.WalletFlow.start]);
+      await _inquirer2.default.prompt([_prompts.LoadWalletFlow.start]);
 
       var passphrase = await this.passphraseFlow();
 

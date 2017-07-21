@@ -102,7 +102,8 @@ function updatePortfolioSummary(summary) {
   return {
     type: UPDATE_PORTFOLIO_SUMMARY,
     principalOutstanding: summary.principalOutstanding,
-    interestEarned: summary.interestEarned,
+    principalCollected: summary.principalCollected,
+    interestCollected: summary.interestCollected,
     totalCash: summary.totalCash,
     defaultedValue: summary.defaultedValue
   };

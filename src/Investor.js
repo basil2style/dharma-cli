@@ -63,6 +63,8 @@ var Investor = function () {
 
     this.refreshBid = this.refreshBid.bind(this);
     this.refreshInvestment = this.refreshInvestment.bind(this);
+    this.refreshBidPromise = this.refreshBidPromise.bind(this);
+    this.refreshInvestmentPromise = this.refreshInvestmentPromise.bind(this);
 
     this.loanCreatedListenerCallback = this.loanCreatedListenerCallback.bind(this);
     this.totalCashListenerCallback = this.totalCashListenerCallback.bind(this);

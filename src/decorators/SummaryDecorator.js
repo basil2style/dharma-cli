@@ -20,22 +20,34 @@ var SummaryDecorator = function () {
   }
 
   _createClass(SummaryDecorator, [{
+    key: 'principalCollected',
+    value: function principalCollected() {
+      var principalCollected = this.summary.principalCollected.div(decimals).toFixed(4);
+      return '\u039E' + principalCollected;
+    }
+  }, {
     key: 'principalOutstanding',
     value: function principalOutstanding() {
       var principalOutstanding = this.summary.principalOutstanding.div(decimals).toFixed(4);
       return '\u039E' + principalOutstanding;
     }
   }, {
-    key: 'interestEarned',
-    value: function interestEarned() {
-      var interestEarned = this.summary.interestEarned.div(decimals).toFixed(4);
-      return '\u039E' + interestEarned;
+    key: 'interestCollected',
+    value: function interestCollected() {
+      var interestCollected = this.summary.interestCollected.div(decimals).toFixed(4);
+      return '\u039E' + interestCollected;
     }
   }, {
     key: 'totalCash',
     value: function totalCash() {
       var totalCash = this.summary.totalCash.div(decimals).toFixed(4);
       return '\u039E' + totalCash;
+    }
+  }, {
+    key: 'cashDeposited',
+    value: function cashDeposited() {
+      var cashDeposited = this.summary.cashDeposited.div(decimals).toFixed(4);
+      return '\u039E' + cashDeposited;
     }
   }, {
     key: 'defaultedValue',

@@ -26,15 +26,15 @@ var containerStyle = {
   }
 };
 
-var labelListStyle = {
+var cashListLabelStyle = {
   left: '5%',
   top: '10%',
   width: '50%',
   align: 'left',
-  items: ['Principal Outstanding:', "", 'Interest Earned:', "", 'Total Cash:', "", 'Defaulted Loans:', ""]
+  items: ['Principal Collected:', 'Interest Collected:', 'Cash Deposited:']
 };
 
-var valueListStyle = {
+var cashListValueStyle = {
   left: '45%',
   top: '10%',
   width: '50%',
@@ -45,9 +45,38 @@ var valueListStyle = {
   interactive: false
 };
 
-var dividerStyle = {
+var cashFlowsListLabelStyle = {
+  left: '5%',
+  top: '45%',
+  width: '50%',
+  align: 'left',
+  items: ['Total Cash:', 'Principal Outstanding:', 'Defaulted Value:']
+};
+
+var cashFlowsListValueStyle = {
+  left: '45%',
+  top: '45%',
+  width: '50%',
+  align: 'right',
+  style: {
+    fg: 'green'
+  },
+  interactive: false
+};
+
+var firstDividerStyle = {
   width: '90%',
-  top: '70%',
+  top: '35%',
+  left: 'center',
+  style: {
+    fg: 'cyan'
+  },
+  orientation: 'horizontal'
+};
+
+var secondDividerStyle = {
+  width: '90%',
+  top: '65%',
   left: 'center',
   style: {
     fg: 'cyan'
@@ -77,15 +106,24 @@ var PortfolioSummary = function () {
     _classCallCheck(this, PortfolioSummary);
 
     this.container = _blessed2.default.box(containerStyle);
-    this.labelList = _blessed2.default.list(labelListStyle);
-    this.valueList = _blessed2.default.list(valueListStyle);
-    this.divider = _blessed2.default.line(dividerStyle);
+    this.cashListLabels = _blessed2.default.list(cashListLabelStyle);
+    this.cashListValues = _blessed2.default.list(cashListValueStyle);
+    this.cashFlowsListLabels = _blessed2.default.list(cashFlowsListLabelStyle);
+    this.cashFlowsListValues = _blessed2.default.list(cashFlowsListValueStyle);
     this.totalLabel = _blessed2.default.text(totalLabelStyle);
     this.totalValueText = _blessed2.default.list(totalValueStyle);
 
-    this.container.append(this.labelList);
-    this.container.append(this.valueList);
-    this.container.append(this.divider);
+    this.firstDivider = _blessed2.default.line(firstDividerStyle);
+    this.secondDivider = _blessed2.default.line(secondDividerStyle);
+
+    this.container.append(this.cashListLabels);
+    this.container.append(this.cashListValues);
+    this.container.append(this.cashFlowsListLabels);
+    this.container.append(this.cashFlowsListValues);
+
+    this.container.append(this.firstDivider);
+    this.container.append(this.secondDivider);
+
     this.container.append(this.totalLabel);
     this.container.append(this.totalValueText);
   }
@@ -101,9 +139,10 @@ var PortfolioSummary = function () {
       if (summary.length == 0) return;
 
       var decorator = new _SummaryDecorator2.default(summary);
-      var toBeRendered = [decorator.principalOutstanding(), "", decorator.interestEarned(), "", decorator.totalCash(), "", decorator.defaultedValue(), ""];
 
-      this.valueList.setItems(toBeRendered);
+      this.cashListValues.setItems([decorator.principalCollected(), decorator.interestCollected(), decorator.cashDeposited()]);
+
+      this.cashFlowsListValues.setItems([decorator.totalCash(), decorator.principalOutstanding(), decorator.defaultedValue()]);
 
       this.totalValueText.setItems([decorator.totalValue()]);
     }

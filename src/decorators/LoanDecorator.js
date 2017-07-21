@@ -30,11 +30,6 @@ var LoanDecorator = function () {
       return this.loan.borrower.slice(0, 10) + "...";
     }
   }, {
-    key: "attestor",
-    value: function attestor() {
-      return this.loan.attestor.slice(0, 10) + "...";
-    }
-  }, {
     key: "interestRate",
     value: function interestRate() {
       var interestRateDecimal = this.loan.interestRate.div(decimals).times(100).toFixed(2);
@@ -47,16 +42,17 @@ var LoanDecorator = function () {
       return "\u039E" + principalDecimal.toString();
     }
   }, {
-    key: "attestorFee",
-    value: function attestorFee() {
-      var attestorFeeDecimal = this.loan.attestorFee.div(decimals).toFixed(4);
-      return "\u039E" + attestorFeeDecimal.toString();
-    }
-  }, {
     key: "defaultRisk",
     value: function defaultRisk() {
       var defaultRiskDecimal = this.loan.defaultRisk.div(decimals).times(100).toFixed(2);
       return '%' + defaultRiskDecimal.toString();
+    }
+  }, {
+    key: "currentBalanceOwed",
+    value: async function currentBalanceOwed() {
+      var currentlyOwed = await this.loan.servicing.currentBalanceOwed();
+      var currentlyOwedEther = currentlyOwed.div(decimals).toFixed(2);
+      return "\u039E" + currentlyOwedEther.toString();
     }
   }]);
 

@@ -18,9 +18,9 @@ var investments = function investments() {
 
   switch (action.type) {
     case 'INIT_STATE':
-      var portfolio = action.portfolio;
-      return Object.keys(portfolio).map(function (uuid) {
-        var investment = portfolio[uuid];
+      var _investments = action.portfolio.investments;
+      return Object.keys(_investments).map(function (uuid) {
+        var investment = _investments[uuid];
         return investment;
       });
       break;

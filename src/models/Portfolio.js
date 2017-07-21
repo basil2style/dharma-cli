@@ -72,28 +72,31 @@ var Portfolio = function () {
     key: 'getSummary',
     value: async function getSummary() {
       var principalOutstanding = await this.getTotalOutstandingPrincipal();
-      var interestEarned = await this.getTotalInterestEarned();
+      var principalCollected = await this.getTotalCollectedPrincipal();
+      var interestCollected = await this.getTotalCollectedInterest();
       var cash = await this.getTotalCash();
       var defaulted = await this.getTotalDefaultedValue();
 
       var summary = {
         principalOutstanding: principalOutstanding,
-        interestEarned: interestEarned,
+        principalCollected: principalCollected,
+        interestCollected: interestCollected,
         totalCash: cash,
         defaultedValue: defaulted
       };
+
       return summary;
     }
   }, {
     key: 'getTotalCash',
     value: async function getTotalCash() {
-      var _this = this;
+      var _this2 = this;
 
       var investors = {};
       var totalCash = new _bignumber2.default(0);
 
       Object.keys(this.investments).forEach(function (uuid) {
-        var investor = _this.investments[uuid].investor;
+        var investor = _this2.investments[uuid].investor;
         if (!(investor in investors)) {
           investors[investor] = true;
         }
@@ -129,10 +132,10 @@ var Portfolio = function () {
   }, {
     key: 'getInvestments',
     value: function getInvestments() {
-      var _this2 = this;
+      var _this = this;
 
       var currentInvestments = _lodash2.default.filter(Object.keys(this.investments), function (uuid) {
-        var investment = _this2.investments[uuid];
+        var investment = _this.investments[uuid];
         var balance = new _bignumber2.default(investment.balance);
         if (balance.gt(0)) {
           return true;
@@ -140,7 +143,7 @@ var Portfolio = function () {
       });
 
       return _lodash2.default.map(currentInvestments, function (uuid) {
-        return _this2.investments[uuid];
+        return _this.investments[uuid];
       });
     }
   }, {
@@ -158,14 +161,57 @@ var Portfolio = function () {
       return outstandingInvestments;
     }
   }, {
+    key: 'getTotalPrincipal',
+    value: async function getTotalPrincipal() {
+      var investmentsOutstanding = await this.getInvestmentsOutstanding();
+
+      var totalPrincipal = new _bignumber2.default(0);
+      for (var i = 0; i < investmentsOutstanding.length; i++) {
+        var investment = investmentsOutstanding[i];
+        totalPrincipal = totalPrincipal.plus(investment.balance);
+      }
+
+      return totalPrincipal;
+    }
+  }, {
+    key: 'getTotalCollectedPrincipal',
+    value: async function getTotalCollectedPrincipal() {
+      var investmentsOutstanding = await this.getInvestmentsOutstanding();
+
+      var totalCollectedPrincipal = new _bignumber2.default(0);
+      for (var i = 0; i < investmentsOutstanding.length; i++) {
+        var investment = investmentsOutstanding[i];
+        var _loan = investment.loan;
+        var totalPrincipalRepaid = await _loan.servicing.getPrincipalRepaidToDate();
+        var investorsPrincipalRepaid = totalPrincipalRepaid.div(_loan.principal).times(investment.balance);
+        totalCollectedPrincipal = totalCollectedPrincipal.plus(investorsPrincipalRepaid);
+      }
+
+      return totalCollectedPrincipal;
+    }
+  }, {
+    key: 'getTotalCollectedInterest',
+    value: async function getTotalCollectedInterest() {
+      var investmentsOutstanding = await this.getInvestmentsOutstanding();
+
+      var totalCollectedInterest = new _bignumber2.default(0);
+      for (var i = 0; i < investmentsOutstanding.length; i++) {
+        var investment = investmentsOutstanding[i];
+        var _loan2 = investment.loan;
+        var interestEarned = await _loan2.servicing.getInterestRepaidToDate();
+        var investorsInterestCollected = interestEarned.div(_loan2.principal).times(investment.balance);
+        totalCollectedInterest = totalCollectedInterest.plus(investorsInterestCollected);
+      }
+
+      return totalCollectedInterest;
+    }
+  }, {
     key: 'getTotalOutstandingPrincipal',
     value: async function getTotalOutstandingPrincipal() {
-      var investmentsOutstanding = await this.getInvestmentsOutstanding();
-      var totalPrincipal = new _bignumber2.default(0);
-      investmentsOutstanding.forEach(function (investment) {
-        totalPrincipal = totalPrincipal.plus(investment.balance);
-      });
-      return totalPrincipal;
+      var totalPrincipal = await this.getTotalPrincipal();
+      var totalCollectedPrincipal = await this.getTotalCollectedPrincipal();
+
+      return totalPrincipal.minus(totalCollectedPrincipal);
     }
   }, {
     key: 'getDelinquentInvestments',
@@ -200,21 +246,27 @@ var Portfolio = function () {
     value: async function getTotalDefaultedValue() {
       var defaultedInvestments = await this.getDefaultedInvestments();
       var totalValue = new _bignumber2.default(0);
-      defaultedInvestments.forEach(function (investment) {
-        totalValue = totalValue.plus(investment.balance);
-      });
+      for (var i = 0; i < defaultedInvestments.length; i++) {
+        var investment = defaultedInvestments[i];
+        var _loan3 = investment.loan;
+        var totalRepaid = await _loan3.amountRepaid();
+        var totalDefaulted = _loan3.principal.minus(totalRepaid);
+        var totalDefaultedFromInvestor = totalDefaulted.times(investment.balance).div(_loan3.principal);
+        totalValue = totalValue.plus(totalDefaultedFromInvestor);
+      }
       return totalValue;
     }
   }, {
-    key: 'getTotalInterestEarned',
-    value: async function getTotalInterestEarned() {
+    key: 'getTotalInterestCollected',
+    value: async function getTotalInterestCollected() {
       var investments = this.getInvestments();
       var totalInterest = new _bignumber2.default(0);
       for (var i = 0; i < investments.length; i++) {
         var investment = investments[i];
-        var interest = await investment.loan.servicing.getInterestEarnedToDate(new Date());
-
-        totalInterest = totalInterest.add(interest);
+        var _loan4 = investment.loan;
+        var interest = await _loan4.servicing.getInterestRepaidToDate(new Date());
+        var interestToInvestor = interest.times(investment.balance).div(_loan4.principal);
+        totalInterest = totalInterest.add(interestToInvestor);
       }
       return totalInterest;
     }

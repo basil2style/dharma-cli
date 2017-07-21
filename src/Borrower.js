@@ -28,6 +28,10 @@ var _Config = require('./Config');
 
 var _Config2 = _interopRequireDefault(_Config);
 
+var _Liabilities = require('./models/Liabilities');
+
+var _Liabilities2 = _interopRequireDefault(_Liabilities);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -149,19 +153,18 @@ var Borrower = function () {
     }
   }, {
     key: 'acceptLoanTerms',
-    value: async function acceptLoanTerms(loan, bids, callback) {
-      var termBeginEvent = await loan.events.termBegin();
-
-      termBeginEvent.watch(function (err, result) {
-        termBeginEvent.stopWatching(function () {
-          if (err) callback(err, null);else {
-            var blockNumber = result.args.blockNumber;
-            callback(null, result.args.blockNumber);
-          }
-        });
-      });
-
+    value: async function acceptLoanTerms(loan, bids) {
       await loan.acceptBids(bids);
+
+      var liabilities = void 0;
+      try {
+        liabilities = await _Liabilities2.default.load();
+      } catch (err) {
+        liabilities = new _Liabilities2.default();
+      }
+
+      liabilities.addLoan(loan);
+      await liabilities.save();
     }
   }, {
     key: 'getBestBidSet',
