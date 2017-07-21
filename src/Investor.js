@@ -192,6 +192,8 @@ var Investor = function () {
         await loan.withdrawInvestment({ from: investment.investor });
       }
 
+      await this.redeemValueIfPossible(uuid);
+
       var repaymentEvent = await loan.events.repayment();
       repaymentEvent.watch(this.repaymentCallback(loan.uuid));
       investment.addEvent('repaymentEvent', repaymentEvent);
@@ -209,6 +211,20 @@ var Investor = function () {
       };
 
       return new Promise(callback.bind(this));
+    }
+  }, {
+    key: 'redeemValueIfPossible',
+    value: async function redeemValueIfPossible(uuid) {
+      var investment = this.portfolio.investments[uuid];
+      var loan = investment.loan;
+
+      var redeemableValue = await loan.getRedeemableValue(this.wallet.getAddress());
+
+      if (redeemableValue.gt(0)) {
+        await this.collect(uuid);
+        var portfolioSummary = await this.portfolio.getSummary();
+        this.store.dispatch((0, _actions.updatePortfolioSummary)(portfolioSummary));
+      }
     }
   }, {
     key: 'setupAuctionStateListeners',
@@ -321,6 +337,9 @@ var Investor = function () {
 
         _this5.store.dispatch((0, _actions.updateInvestment)(investment));
         _this5.store.dispatch((0, _actions.log)('success', 'Received repayment of ' + _InvestmentDecorator2.default.individualRepayment(result.args.value) + ' for loan ' + uuid));
+
+        _this5.store.dispatch((0, _actions.log)('info', 'Collecting repayment from loan contract ' + uuid));
+        await _this5.redeemValueIfPossible(uuid);
       };
 
       return callback.bind(this);

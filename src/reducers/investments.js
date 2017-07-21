@@ -29,7 +29,7 @@ var investments = function investments() {
       break;
     case 'UPDATE_INVESTMENT':
       var remainingInvestments = _lodash2.default.remove(state, function (investment) {
-        investment.loan.uuid === action.investment.loan.uuid;
+        return investment.loan.uuid !== action.investment.loan.uuid;
       });
 
       return [].concat(_toConsumableArray(remainingInvestments), [action.investment]);

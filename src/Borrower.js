@@ -158,7 +158,7 @@ var Borrower = function () {
 
       var liabilities = void 0;
       try {
-        liabilities = await _Liabilities2.default.load();
+        liabilities = await _Liabilities2.default.load(this.dharma);
       } catch (err) {
         liabilities = new _Liabilities2.default();
       }
