@@ -210,6 +210,7 @@ var CLI = function () {
       var address = this.wallet.getAddress();
 
       var loan = void 0;
+      var attestation = void 0;
       var stipendReceiptHash = void 0;
 
       var loader = new _cliSpinner.Spinner('Requesting attestation from Dharma Labs Inc.');
@@ -218,7 +219,7 @@ var CLI = function () {
 
       // Request attestation from the Risk Assessment Attestor (i.e. Dharma)
       try {
-        loan = await this.borrower.requestAttestation(address, amount);
+        attestation = await this.borrower.requestAttestation(address, amount);
       } catch (err) {
         loader.stop();
         if (err.type === 'AuthenticationError') {
@@ -226,10 +227,34 @@ var CLI = function () {
           if (answer.confirmStart) {
             await (0, _opn2.default)('https://authenticate.dharma.io', { wait: false });
           }
-        } else {
-          throw err;
+        } else if (err.type === 'RejectionError') {
+          console.error('Sorry -- your loan request has been denied.  Please try' + " again another day.");
+          process.exit(1);
         }
-        return;
+      }
+
+      loader.stop(true);
+
+      console.log("You've been approved for a loan of up to " + attestation.limit + " ether.");
+
+      var response = await _inquirer2.default.prompt([_prompts.BorrowFlow.chooseAmount]);
+      if (response.amount > attestation.limit) {
+        console.error('Sorry -- you may only request up to ' + attestation.limit + ' ether.');
+        process.exit(1);
+      }
+
+      loader.start();
+      loader.setSpinnerTitle("Requesting signed loan attestation from Dharma Labs Inc.");
+
+      // Request signed loan request from the Risk Assessment Attestor (i.e. Dharma)
+      try {
+        loan = await this.borrower.requestSignedLoan(address, response.amount);
+      } catch (err) {
+        loader.stop();
+        if (err.type === 'RejectionError') {
+          console.error('Sorry -- your loan request has been denied.  Please try' + " again another day.");
+          process.exit(1);
+        }
       }
 
       // If borrower's balance is too low to deploy loan request, request deployment
@@ -245,7 +270,7 @@ var CLI = function () {
         }
       }
 
-      loader.setSpinnerTitle("Deploying loan request.");
+      loader.setSpinnerTitle("Deploying loan request for " + response.amount + ' ether.');
 
       var onAuctionStart = function onAuctionStart(err, result) {
         loader.setSpinnerTitle("Loan request deployed. Investors are bidding on your request.");

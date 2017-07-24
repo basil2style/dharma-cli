@@ -39,13 +39,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var PORTFOLIO_STORE_FILE = _os2.default.homedir() + '/.dharma/portfolio.json';
 
 var Portfolio = function () {
-  function Portfolio(web3) {
-    var investments = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-    var bids = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  function Portfolio(web3, wallet) {
+    var investments = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    var bids = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
     _classCallCheck(this, Portfolio);
 
     this.web3 = web3;
+    this.wallet = wallet;
     this.investments = investments;
     this.bids = bids;
   }
@@ -90,25 +91,7 @@ var Portfolio = function () {
   }, {
     key: 'getTotalCash',
     value: async function getTotalCash() {
-      var _this2 = this;
-
-      var investors = {};
-      var totalCash = new _bignumber2.default(0);
-
-      Object.keys(this.investments).forEach(function (uuid) {
-        var investor = _this2.investments[uuid].investor;
-        if (!(investor in investors)) {
-          investors[investor] = true;
-        }
-      });
-
-      var investorList = Object.keys(investors);
-      for (var i = 0; i < investorList.length; i++) {
-        var cash = await _Util2.default.getBalance(this.web3, investorList[i]);
-        totalCash = totalCash.plus(cash);
-      }
-
-      return totalCash;
+      return await _Util2.default.getBalance(this.web3, this.wallet.getAddress());
     }
   }, {
     key: 'getTotalValue',
@@ -314,7 +297,7 @@ var Portfolio = function () {
     }
   }], [{
     key: 'load',
-    value: async function load(dharma) {
+    value: async function load(dharma, wallet) {
       var raw = void 0;
       try {
         raw = await _fsExtra2.default.readJson(PORTFOLIO_STORE_FILE);
@@ -336,7 +319,7 @@ var Portfolio = function () {
 
       await Promise.all(promises);
 
-      return new Portfolio(dharma.web3, investments, bids);
+      return new Portfolio(dharma.web3, wallet, investments, bids);
     }
   }]);
 

@@ -386,9 +386,9 @@ var Investor = function () {
     key: 'loadPortfolio',
     value: async function loadPortfolio() {
       try {
-        this.portfolio = await _Portfolio2.default.load(this.dharma);
+        this.portfolio = await _Portfolio2.default.load(this.dharma, this.wallet);
       } catch (err) {
-        this.portfolio = new _Portfolio2.default(this.dharma.web3);
+        this.portfolio = new _Portfolio2.default(this.dharma.web3, this.wallet);
       }
 
       return this.portfolio;

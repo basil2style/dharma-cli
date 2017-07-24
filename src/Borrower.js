@@ -51,13 +51,12 @@ var Borrower = function () {
 
   _createClass(Borrower, [{
     key: 'requestAttestation',
-    value: async function requestAttestation(borrowerAddress, amount) {
+    value: async function requestAttestation() {
       var authenticate = new _Authenticate2.default();
       var authToken = await authenticate.getAuthToken();
 
-      var params = this._getRequestParams('/requestLoan', {
-        authToken: authToken,
-        address: borrowerAddress
+      var params = this._getRequestParams('/requestAttestation', {
+        authToken: authToken
       });
 
       var response = void 0;
@@ -72,7 +71,7 @@ var Borrower = function () {
             case 'INVALID_ADDRESS':
               throw new Error("Borrower address is invalid.");
               break;
-            case 'LOAN_REQUEST_REJECTED':
+            case 'ATTESTATION_REJECTED':
               throw new _Errors.RejectionError('Your loan request has been rejected.');
               break;
 
@@ -84,8 +83,47 @@ var Borrower = function () {
           throw err;
         }
       }
-      var loan = await this.dharma.loans.create(response);
 
+      return response;
+    }
+  }, {
+    key: 'requestSignedLoan',
+    value: async function requestSignedLoan(borrower, amount) {
+      var authenticate = new _Authenticate2.default();
+      var authToken = await authenticate.getAuthToken();
+
+      var params = this._getRequestParams('/requestSignedLoan', {
+        authToken: authToken,
+        address: borrower,
+        amount: amount
+      });
+
+      var response = void 0;
+      try {
+        response = await (0, _requestPromise2.default)(params);
+      } catch (err) {
+        if (err.name === 'StatusCodeError') {
+          switch (err.response.body.error) {
+            case 'INVALID_AUTH_TOKEN':
+              throw new _Errors.AuthenticationError('Invalid Authentication Token');
+              break;
+            case 'INVALID_ADDRESS':
+              throw new Error("Borrower address is invalid.");
+              break;
+            case 'ATTESTATION_REJECTED':
+              throw new _Errors.RejectionError('Your loan request has been rejected.');
+              break;
+
+            default:
+              console.log(err);
+              throw new Error(err.response.body.toString());
+          }
+        } else {
+          throw err;
+        }
+      }
+
+      var loan = await this.dharma.loans.create(response);
       await loan.verifyAttestation();
 
       return loan;
