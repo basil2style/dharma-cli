@@ -10,7 +10,7 @@ var _web = require('web3');
 
 var _web2 = _interopRequireDefault(_web);
 
-var _dharmaJs = require('../submodules/dharma-js');
+var _dharmaJs = require('../modules/dharma-js');
 
 var _dharmaJs2 = _interopRequireDefault(_dharmaJs);
 
@@ -221,14 +221,14 @@ var CLI = function () {
       try {
         attestation = await this.borrower.requestAttestation(address, amount);
       } catch (err) {
-        loader.stop();
+        loader.stop(true);
         if (err.type === 'AuthenticationError') {
           var answer = await _inquirer2.default.prompt([_prompts.AuthenticateFlow.start]);
           if (answer.confirmStart) {
             await (0, _opn2.default)('https://authenticate.dharma.io', { wait: false });
           }
         } else if (err.type === 'RejectionError') {
-          console.error('Sorry -- your loan request has been denied.  Please try' + " again another day.");
+          console.error('Sorry -- your loan request has been denied.  Please try' + " again later.");
           process.exit(1);
         }
       }
@@ -250,9 +250,9 @@ var CLI = function () {
       try {
         loan = await this.borrower.requestSignedLoan(address, response.amount);
       } catch (err) {
-        loader.stop();
+        loader.stop(true);
         if (err.type === 'RejectionError') {
-          console.error('Sorry -- your loan request has been denied.  Please try' + " again another day.");
+          console.error('Sorry -- your loan request has been denied.  Please try' + " again later.");
           process.exit(1);
         }
       }
