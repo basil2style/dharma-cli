@@ -42,7 +42,7 @@ var execPath = process.env.npm_execpath || process.env.NPM_CLI_JS
 if (util.isYarnPath(execPath) && /node_modules/.test(process.cwd())) {
   // From yarn repository
 } else if (!(typeof pkg._from === 'string')) {
-  log.info('install', 'installing inside prebuild-install directory, skipping download.')
+  log.info('install', 'installing standalone, skipping download.')
   process.exit(1)
 } else if (pkg._from.length > 4 && pkg._from.substr(0, 4) === 'git+') {
   log.info('install', 'installing from git repository, skipping download.')
@@ -57,5 +57,5 @@ download(opts, function (err) {
     log.warn('install', err.message)
     return process.exit(1)
   }
-  log.info('install', 'Prebuild successfully installed!')
+  log.info('install', 'Successfully installed prebuilt binary!')
 })

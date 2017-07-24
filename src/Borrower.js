@@ -36,8 +36,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var MIN_GAS_REQUIRED = 1000000;
-var GAS_PRICE_IN_GWEI = 22;
+var MIN_GAS_REQUIRED = 500000;
+var GAS_PRICE_IN_GWEI = 18;
 
 var Borrower = function () {
   function Borrower(dharma) {
@@ -53,10 +53,10 @@ var Borrower = function () {
     key: 'requestAttestation',
     value: async function requestAttestation(borrowerAddress, amount) {
       var authenticate = new _Authenticate2.default();
-      var authKey = await authenticate.getAuthKey();
+      var authToken = await authenticate.getAuthToken();
 
       var params = this._getRequestParams('/requestLoan', {
-        authKey: authKey,
+        authToken: authToken,
         address: borrowerAddress
       });
 
@@ -77,14 +77,15 @@ var Borrower = function () {
               break;
 
             default:
-              throw new Error(response.error);
+              console.log(err);
+              throw new Error(err.response.body.toString());
           }
         } else {
           throw err;
         }
       }
-
       var loan = await this.dharma.loans.create(response);
+
       await loan.verifyAttestation();
 
       return loan;
@@ -93,10 +94,10 @@ var Borrower = function () {
     key: 'requestDeploymentStipend',
     value: async function requestDeploymentStipend(address) {
       var authenticate = new _Authenticate2.default();
-      var authKey = await authenticate.getAuthKey();
+      var authToken = await authenticate.getAuthToken();
 
       var params = this._getRequestParams('/requestDeploymentStipend', {
-        authKey: authKey,
+        authToken: authToken,
         address: address
       });
 

@@ -94,5 +94,14 @@ module.exports = {
         choices: ['Current Balance Owed (' + currentBalanceOwed + ')', 'Other']
       };
     }
+  },
+
+  FaucetFlow: {
+    howMuch: {
+      type: 'list',
+      name: 'choice',
+      message: 'How much ether do you need?',
+      choices: ['1 ether for 1 day', '2.5 ether for 3 days', '6.25 ether for 9 days']
+    }
   }
 };

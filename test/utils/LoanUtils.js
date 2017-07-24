@@ -1,5 +1,5 @@
 import uuidV4 from 'uuid/v4';
-import Dharma from 'dharma';
+import Dharma from 'dharma-js';
 import _ from 'lodash';
 import BigNumber from 'bignumber.js';
 import Random from 'random-js';

@@ -43,6 +43,8 @@ var DEFAULT_STORE_FILE = _os2.default.homedir() + '/.dharma/wallet.json';
 
 var Wallet = function () {
   function Wallet(ethJSWallet) {
+    var _this = this;
+
     var mnemonic = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
     var storeFile = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : DEFAULT_STORE_FILE;
 
@@ -50,6 +52,11 @@ var Wallet = function () {
 
     this.mnemonic = mnemonic;
     this.ethJSWallet = ethJSWallet;
+
+    this.ethJSWallet.getAddressesString = function () {
+      return _this.getAddress();
+    };
+
     this.storeFile = storeFile;
   }
 

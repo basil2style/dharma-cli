@@ -42,7 +42,7 @@ var Util = function () {
           if (err) {
             reject(err);
           } else {
-            resolve(balance);
+            resolve(balance.div(Math.pow(10, 18)));
           }
         });
       });

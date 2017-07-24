@@ -10,9 +10,9 @@ var _web = require('web3');
 
 var _web2 = _interopRequireDefault(_web);
 
-var _dharma = require('dharma');
+var _dharmaJs = require('../submodules/dharma-js');
 
-var _dharma2 = _interopRequireDefault(_dharma);
+var _dharmaJs2 = _interopRequireDefault(_dharmaJs);
 
 var _Wallet = require('./Wallet');
 
@@ -80,6 +80,18 @@ var _Liabilities = require('./models/Liabilities');
 
 var _Liabilities2 = _interopRequireDefault(_Liabilities);
 
+var _Config = require('./Config');
+
+var _Config2 = _interopRequireDefault(_Config);
+
+var _Faucet = require('./Faucet');
+
+var _Faucet2 = _interopRequireDefault(_Faucet);
+
+var _meow = require('meow');
+
+var _meow2 = _interopRequireDefault(_meow);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -100,7 +112,7 @@ var CLI = function () {
       var address = this.wallet.getAddress();
       var balance = await _Util2.default.getBalance(this.web3, address);
 
-      console.log('Ropsten Testnet Balance: \u039E' + balance);
+      console.log('Dharma Testnet Balance: \u039E' + balance);
 
       var menu = await _inquirer2.default.prompt([_prompts.WalletFlow.mainMenu]);
       var loader = void 0;
@@ -212,7 +224,7 @@ var CLI = function () {
         if (err.type === 'AuthenticationError') {
           var answer = await _inquirer2.default.prompt([_prompts.AuthenticateFlow.start]);
           if (answer.confirmStart) {
-            await (0, _opn2.default)('http://localhost:8080/api/authenticate', { wait: false });
+            await (0, _opn2.default)('https://authenticate.dharma.io', { wait: false });
           }
         } else {
           throw err;
@@ -315,7 +327,7 @@ var CLI = function () {
   }], [{
     key: 'authenticate',
     value: async function authenticate(args) {
-      var optionDefinitions = [{ name: 'authKey', alias: 'a', defaultOption: true, type: String }];
+      var optionDefinitions = [{ name: 'authToken', alias: 'a', defaultOption: true, type: String }];
 
       var params = (0, _commandLineArgs2.default)(optionDefinitions, {
         argv: args
@@ -324,7 +336,7 @@ var CLI = function () {
       var authenticate = new _Authenticate2.default();
 
       try {
-        await authenticate.setAuthKey(params.authKey);
+        await authenticate.setAuthToken(params.authToken);
         console.log("Your account is now authenticated!  You may broadcast requests " + 'to the Dharma Loan Network');
       } catch (err) {
         console.log(err);
@@ -334,11 +346,26 @@ var CLI = function () {
   }, {
     key: 'entry',
     value: async function entry(args) {
-      var validCommands = [null, 'borrow', 'authenticate', 'invest', 'wallet'];
+      var validCommands = [null, 'borrow', 'authenticate', 'invest', 'wallet', 'faucet'];
 
       var _commandLineCommands = (0, _commandLineCommands3.default)(validCommands),
           command = _commandLineCommands.command,
           argv = _commandLineCommands.argv;
+      // const cli = meow(`
+      //   Usage
+      //     $ dharma <command>
+      //
+      //   Commands:
+      //     borrow        Request a loan on the Dharma network.
+      //     invest        Start a daemon that auto-invests in loans on the Dharma Network
+      //                   according to programmable parameters.
+      //     wallet        Send ether, view your balance, and make loan repayments.
+      //     authenticate  Update local authentication token
+      //
+      //   Options
+      //     -r, --rpc     Specify the JSON-RPC path of an ethereum node to connect to
+      //                   (default: Dharma Labs' hosted nodes)
+      // `)
 
       switch (command) {
         case "borrow":
@@ -353,10 +380,61 @@ var CLI = function () {
         case "wallet":
           await CLI.wallet(argv);
           break;
+        case "faucet":
+          await CLI.faucet(argv);
+          break;
         default:
           // do something
           break;
       }
+    }
+  }, {
+    key: 'faucet',
+    value: async function faucet(args) {
+      var cli = await CLI.init();
+      var faucet = new _Faucet2.default(cli.dharma);
+
+      var response = await _inquirer2.default.prompt([_prompts.FaucetFlow.howMuch]);
+      var amount = void 0;
+      switch (response.choice) {
+        case '1 ether for 1 day':
+          amount = 1;
+          break;
+        case '2.5 ether for 3 days':
+          amount = 2.5;
+          break;
+        case '6.25 ether for 9 days':
+          amount = 6.25;
+          break;
+        default:
+          amount = 1;
+          break;
+      }
+
+      var loader = new _cliSpinner.Spinner('Requesting ether from faucet...');
+      loader.setSpinnerString(18);
+      loader.start();
+
+      try {
+        var txHash = await faucet.requestEther(cli.wallet, amount);
+        var tx = await _Util2.default.transactionMined(cli.web3, txHash);
+      } catch (err) {
+        loader.stop();
+        if (err.type === 'AuthenticationError') {
+          var answer = await _inquirer2.default.prompt([_prompts.AuthenticateFlow.start]);
+          if (answer.confirmStart) {
+            await (0, _opn2.default)('https://authenticate.dharma.io', { wait: false });
+          }
+        } else {
+          console.error(err.message);
+          process.exit(1);
+        }
+      }
+
+      loader.stop(true);
+
+      console.log(amount + " ether has been sent to address " + cli.wallet.getAddress());
+      process.exit(0);
     }
   }, {
     key: 'borrow',
@@ -403,10 +481,10 @@ var CLI = function () {
       var web3 = new _web2.default(engine);
 
       engine.addProvider(wallet.getSubprovider());
-      engine.addProvider(new _web4.default(new _web2.default.providers.HttpProvider('http://localhost:8546')));
+      engine.addProvider(new _web4.default(new _web2.default.providers.HttpProvider(_Config2.default.WEB3_RPC_PROVIDER)));
       engine.start();
 
-      var dharma = new _dharma2.default(web3);
+      var dharma = new _dharmaJs2.default(web3);
 
       return new CLI(dharma, wallet);
     }

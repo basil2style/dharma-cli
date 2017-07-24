@@ -1,7 +1,7 @@
 import LoanUtils from '../utils/LoanUtils'
 import {web3, util} from '../init';
 import mock from 'mock-fs';
-import Dharma from 'dharma';
+import Dharma from 'dharma-js';
 import Portfolio from '../../src/models/Portfolio';
 import Investor from '../../src/Investor';
 import MockDate from 'mockdate';

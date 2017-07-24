@@ -1,7 +1,7 @@
 import mockyeah from 'mockyeah';
 import mockfs from 'mock-fs'
 import Borrower from '../../src/Borrower';
-import Dharma from 'dharma';
+import Dharma from 'dharma-js';
 import {web3, util} from '../init.js';
 import LoanUtils from '../utils/LoanUtils';
 import Authenticate from '../../src/Authenticate';

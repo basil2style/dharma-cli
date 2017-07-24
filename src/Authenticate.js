@@ -24,19 +24,19 @@ var Authenticate = function () {
   }
 
   _createClass(Authenticate, [{
-    key: 'getAuthKey',
-    value: async function getAuthKey() {
+    key: 'getAuthToken',
+    value: async function getAuthToken() {
       try {
         var auth = await _fsExtra2.default.readJson(this.storeFile);
-        return auth.key;
+        return auth.token;
       } catch (err) {
-        throw new _Errors.AuthenticationError('Auth key file does not exist or is unreadable.');
+        throw new _Errors.AuthenticationError('Auth token file does not exist or is unreadable.');
       }
     }
   }, {
-    key: 'setAuthKey',
-    value: async function setAuthKey(key) {
-      await _fsExtra2.default.outputJson(this.storeFile, { key: key });
+    key: 'setAuthToken',
+    value: async function setAuthToken(token) {
+      await _fsExtra2.default.outputJson(this.storeFile, { token: token });
     }
   }]);
 
