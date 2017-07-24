@@ -42,9 +42,9 @@ var _Authenticate = require('./Authenticate');
 
 var _Authenticate2 = _interopRequireDefault(_Authenticate);
 
-var _commandLineCommands2 = require('command-line-commands');
+var _commandLineCommands = require('command-line-commands');
 
-var _commandLineCommands3 = _interopRequireDefault(_commandLineCommands2);
+var _commandLineCommands2 = _interopRequireDefault(_commandLineCommands);
 
 var _commandLineArgs = require('command-line-args');
 
@@ -91,6 +91,14 @@ var _Faucet2 = _interopRequireDefault(_Faucet);
 var _meow = require('meow');
 
 var _meow2 = _interopRequireDefault(_meow);
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+var _os = require('os');
+
+var _os2 = _interopRequireDefault(_os);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -352,16 +360,14 @@ var CLI = function () {
   }], [{
     key: 'authenticate',
     value: async function authenticate(args) {
-      var optionDefinitions = [{ name: 'authToken', alias: 'a', defaultOption: true, type: String }];
+      var cli = (0, _meow2.default)('\n      Usage\n        $ dharma authenticate <authToken>\n\n      Commands:\n        authToken     Auth token to save locally.  Go to https://authenticate.dharma.io\n                      in order to verify your identity and receive an auth token.\n    ');
 
-      var params = (0, _commandLineArgs2.default)(optionDefinitions, {
-        argv: args
-      });
+      if (cli.input.length < 2) cli.showHelp();
 
       var authenticate = new _Authenticate2.default();
 
       try {
-        await authenticate.setAuthToken(params.authToken);
+        await authenticate.setAuthToken(cli.input[1]);
         console.log("Your account is now authenticated!  You may broadcast requests " + 'to the Dharma Loan Network');
       } catch (err) {
         console.log(err);
@@ -370,29 +376,12 @@ var CLI = function () {
     }
   }, {
     key: 'entry',
-    value: async function entry(args) {
-      var validCommands = [null, 'borrow', 'authenticate', 'invest', 'wallet', 'faucet'];
+    value: async function entry(argv) {
+      var cli = (0, _meow2.default)('\n      Usage\n        $ dharma <command>\n\n      Commands:\n        borrow        Request a loan on the Dharma network.\n        invest        Start a daemon that auto-invests in loans on the Dharma Network\n                      according to programmable parameters.\n        wallet        Send ether, view your balance, and make loan repayments.\n        authenticate  Update local authentication token\n        init          Create a decision engine file.\n        faucet        Get some ether from the Dharma Testnet Faucet\n    ');
 
-      var _commandLineCommands = (0, _commandLineCommands3.default)(validCommands),
-          command = _commandLineCommands.command,
-          argv = _commandLineCommands.argv;
-      // const cli = meow(`
-      //   Usage
-      //     $ dharma <command>
-      //
-      //   Commands:
-      //     borrow        Request a loan on the Dharma network.
-      //     invest        Start a daemon that auto-invests in loans on the Dharma Network
-      //                   according to programmable parameters.
-      //     wallet        Send ether, view your balance, and make loan repayments.
-      //     authenticate  Update local authentication token
-      //
-      //   Options
-      //     -r, --rpc     Specify the JSON-RPC path of an ethereum node to connect to
-      //                   (default: Dharma Labs' hosted nodes)
-      // `)
+      if (cli.input.length == 0) cli.showHelp();
 
-      switch (command) {
+      switch (cli.input[0]) {
         case "borrow":
           await CLI.borrow(argv);
           break;
@@ -408,10 +397,29 @@ var CLI = function () {
         case "faucet":
           await CLI.faucet(argv);
           break;
+        case "init":
+          CLI.writeExampleEngine(argv);
+          break;
         default:
           // do something
           break;
       }
+    }
+  }, {
+    key: 'writeExampleEngine',
+    value: function writeExampleEngine(args) {
+      var cli = (0, _meow2.default)('\n      Usage\n        $ dharma init [enginePath]\n\n      Parameters:\n        enginePath        Output path for example engine file. Default: ./\n    ');
+
+      var path = void 0;
+      if (cli.input.length < 2) {
+        path = "./DecisionEngine.js";
+      } else {
+        path = cli.input[1];
+      }
+
+      _fs2.default.createReadStream(__dirname + '/../examples/DecisionEngine.js').pipe(_fs2.default.createWriteStream(path));
+
+      console.log("Created example decision engine at " + path);
     }
   }, {
     key: 'faucet',
@@ -475,15 +483,13 @@ var CLI = function () {
     }
   }, {
     key: 'invest',
-    value: async function invest(args) {
-      var optionDefinitions = [{ name: 'engine', alias: 'e', defaultOption: true, type: String }];
+    value: async function invest() {
+      var args = (0, _meow2.default)('\n      Usage\n        $ dharma invest <enginePath>\n\n      Parameters:\n        enginePath    Path to the decision engine the Dharma CLI will use to\n                      make investment decisions.  Run \'dharma init\' in order\n                      to generate an example decision engine.\n    ');
 
-      var params = (0, _commandLineArgs2.default)(optionDefinitions, {
-        argv: args
-      });
+      if (args.input.length < 2) args.showHelp();
 
       var cli = await CLI.init();
-      await cli.investFlow(params.engine);
+      await cli.investFlow(args.input[1]);
     }
   }, {
     key: 'wallet',
