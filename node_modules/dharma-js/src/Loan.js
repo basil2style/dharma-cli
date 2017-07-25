@@ -550,7 +550,7 @@ var Loan = function (_RedeemableERC) {
     value: function () {
       var _ref11 = _asyncToGenerator(regeneratorRuntime.mark(function _callee11() {
         var nextBlock = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var contract, blockNumber;
+        var truffleContract, contract, blockNumber;
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
             switch (_context11.prev = _context11.next) {
@@ -559,7 +559,8 @@ var Loan = function (_RedeemableERC) {
                 return _LoanContract2.default.instantiate(this.web3);
 
               case 2:
-                contract = _context11.sent;
+                truffleContract = _context11.sent;
+                contract = this.web3.eth.contract(truffleContract.abi).at(truffleContract.address);
                 blockNumber = void 0;
 
                 if (!nextBlock) {
@@ -567,23 +568,22 @@ var Loan = function (_RedeemableERC) {
                   break;
                 }
 
-                _context11.next = 7;
+                _context11.next = 8;
                 return _Util2.default.getLatestBlockNumber(this.web3);
 
-              case 7:
+              case 8:
                 blockNumber = _context11.sent;
 
-                blockNumber = new this.web3.BigNumber(blockNumber);
-                blockNumber = blockNumber.plus(1);
+                blockNumber += 1;
 
               case 10:
-                _context11.next = 12;
-                return contract.getState.call(this.uuid, blockNumber);
+                return _context11.abrupt('return', new Promise(function (resolve, reject) {
+                  contract.getState.call(this.uuid, blockNumber, function (err, state) {
+                    if (err) reject(err);else resolve(state);
+                  });
+                }));
 
-              case 12:
-                return _context11.abrupt('return', _context11.sent);
-
-              case 13:
+              case 11:
               case 'end':
                 return _context11.stop();
             }

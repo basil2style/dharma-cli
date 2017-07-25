@@ -275,16 +275,22 @@ class Loan extends RedeemableERC20 {
   }
 
   async getState(nextBlock=false) {
-    const contract = await LoanContract.instantiate(this.web3);
+    const truffleContract = await LoanContract.instantiate(this.web3);
+    const contract = this.web3.eth.contract(truffleContract.abi)
+      .at(truffleContract.address)
 
     let blockNumber;
     if (nextBlock) {
       blockNumber = await Util.getLatestBlockNumber(this.web3);
-      blockNumber = new this.web3.BigNumber(blockNumber);
-      blockNumber = blockNumber.plus(1);
+      blockNumber += 1;
     }
 
-    return await contract.getState.call(this.uuid, blockNumber);
+    return new Promise(function(resolve, reject) {
+      contract.getState.call(this.uuid, blockNumber, (err, state) => {
+        if (err) reject(err);
+        else resolve(state);
+      });
+    });
   }
 
   async getInterestRate() {
