@@ -144,6 +144,10 @@ If a borrower defaults on a loan or is delinquent in their payments, their defau
 
 The Dharma CLI ingests ES7 Javascript classes that are required to expose a constructor and `async` method of the following format:
 ```javascript
+ constructor(web3) {
+   this.web3 = web3;
+ }
+
  async decide(loan) {
    /*
      Decision logic goes here
@@ -275,3 +279,49 @@ An object with the following keys comprising the RAA's ECDSA signature of a stri
 ___
 
 ##### The `Terms` object exposes the following instance variables:
+
+____
+
+```javascript
+  terms.version
+```
+**Returns**
+
+`BigNumber` - Current version of the terms schema
+
+____
+
+```javascript
+  terms.periodType
+```
+**Returns**
+
+`String` - The time units in which the amortization periods of the loan are denominated in.  Can be exclusively of types: `daily`, `weekly`, `monthly`, and `yearly`
+
+____
+
+```javascript
+  terms.periodLength
+```
+**Returns**
+
+`BigNumber` - The length of each payment period, in terms of `periodType` (i.e. if each payment period lasts 2 weeks, `terms.periodType = 'weekly'` and `terms.periodLength = 2`)
+
+____
+
+```javascript
+  terms.termLength
+```
+**Returns**
+
+`BigNumber` - The number of payment periods in the entire loan term  (i.e. if the entire term of the loan is 2 months and payments are expected every two weeks, `terms.periodType = 'weekly'`, `terms.periodLength = 2`, and `terms.termLength = 4`)
+
+```javascript
+  terms.compounded
+```
+
+**NOTE**: Currently, only non-compounded interest rates are supported by the CLI, so this variable is, by default, false.
+
+**Returns**
+
+`Boolean` - True or false indicating whether or not interest is compounded on the loan.
