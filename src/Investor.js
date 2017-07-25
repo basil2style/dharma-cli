@@ -268,6 +268,9 @@ var Investor = function () {
       var loan = bid.loan;
 
       var tokenBalance = await loan.balanceOf(bid.bidder);
+
+      if (tokenBalance.equals(0)) this.store.dispatch((0, _actions.log)('info', 'Lost auction for loan ' + loan.uuid));
+
       if (tokenBalance.lt(bid.amount)) {
         this.store.dispatch((0, _actions.log)('info', 'Withdrawing refunded remainder of bid amount'));
         try {
@@ -277,23 +280,25 @@ var Investor = function () {
         }
       }
 
-      var investment = new _Investment2.default(loan);
-      investment.investor = bid.bidder;
-      investment.repaymentStatus = await loan.servicing.getRepaymentStatus();
-      investment.balance = tokenBalance;
-      investment.amountRepaid = await loan.amountRepaid();
+      if (tokenBalance.gt(0)) {
+        var investment = new _Investment2.default(loan);
+        investment.investor = bid.bidder;
+        investment.repaymentStatus = await loan.servicing.getRepaymentStatus();
+        investment.balance = tokenBalance;
+        investment.amountRepaid = await loan.amountRepaid();
 
-      var investmentDecorator = new _InvestmentDecorator2.default(investment);
-      this.store.dispatch((0, _actions.log)('success', 'Won auction for ' + investmentDecorator.balance() + ' tokens in loan ' + loan.uuid + 'at a ' + investmentDecorator.interestRate() + ' interest rate.'));
+        var investmentDecorator = new _InvestmentDecorator2.default(investment);
+        this.store.dispatch((0, _actions.log)('success', 'Won auction for ' + investmentDecorator.balance() + ' tokens in loan ' + loan.uuid + 'at a ' + investmentDecorator.interestRate() + ' interest rate.'));
 
-      this.portfolio.addInvestment(investment);
-      await this.refreshInvestment(loan.uuid);
+        this.portfolio.addInvestment(investment);
+        await this.refreshInvestment(loan.uuid);
+
+        this.store.dispatch((0, _actions.addInvestment)(investment));
+      }
 
       this.portfolio.removeBid(bid);
 
       var portfolioSummary = await this.portfolio.getSummary();
-
-      this.store.dispatch((0, _actions.addInvestment)(investment));
       this.store.dispatch((0, _actions.updatePortfolioSummary)(portfolioSummary));
     }
   }, {
