@@ -550,7 +550,7 @@ var Loan = function (_RedeemableERC) {
     value: function () {
       var _ref11 = _asyncToGenerator(regeneratorRuntime.mark(function _callee11() {
         var nextBlock = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var truffleContract, contract, blockNumber;
+        var truffleContract, contract, blockNumber, uuid;
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
             switch (_context11.prev = _context11.next) {
@@ -577,13 +577,14 @@ var Loan = function (_RedeemableERC) {
                 blockNumber += 1;
 
               case 10:
+                uuid = this.uuid;
                 return _context11.abrupt('return', new Promise(function (resolve, reject) {
-                  contract.getState.call(this.uuid, blockNumber, function (err, state) {
+                  contract.getState.call(uuid, blockNumber, function (err, state) {
                     if (err) reject(err);else resolve(state);
                   });
                 }));
 
-              case 11:
+              case 12:
               case 'end':
                 return _context11.stop();
             }

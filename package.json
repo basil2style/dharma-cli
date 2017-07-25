@@ -26,7 +26,7 @@
     "cli-spinner": "^0.2.6",
     "command-line-args": "^4.0.6",
     "command-line-commands": "^2.0.1",
-    "dharma-js": "^0.1.34",
+    "dharma-js": "^0.1.35",
     "es6-promisify": "^5.0.0",
     "ethereumjs-util": "^5.1.2",
     "ethereumjs-wallet": "^0.6.0",
