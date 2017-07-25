@@ -72,6 +72,10 @@ var RiskBreakdownChart = function () {
         _loop(i);
       }
 
+      riskProfile = riskProfile.map(function (value) {
+        return value.toFixed(2);
+      });
+
       this.barChart.maxHeight = Math.max(riskProfile);
 
       this.barChart.setData({
