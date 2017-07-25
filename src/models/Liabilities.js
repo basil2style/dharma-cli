@@ -10,6 +10,10 @@ var _fsExtra = require('fs-extra');
 
 var _fsExtra2 = _interopRequireDefault(_fsExtra);
 
+var _Constants = require('../Constants');
+
+var _Constants2 = _interopRequireDefault(_Constants);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -55,7 +59,10 @@ var Liabilities = function () {
       var promises = raw.map(function (uuid) {
         return new Promise(async function (resolve, reject) {
           try {
-            loans[uuid] = await dharma.loans.get(uuid);
+            var loan = await dharma.loans.get(uuid);
+            if (loan.state === _Constants2.default.ACCEPTED_STATE) {
+              loans[uuid] = loan;
+            }
             resolve();
           } catch (err) {
             reject(err);
