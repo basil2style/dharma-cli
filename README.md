@@ -1,3 +1,8 @@
+<p align="center">
+  <img height='150px' src="https://s3-us-west-2.amazonaws.com/dharma-cli-gifs/DharmaGold.png" />
+</p>
+
+
 <h1 align="center">Dharma Command Line Interface</h1>
 
 > [Dharma](https://dharma.io) is a protocol for unsecured, peer-to-peer cryptocurrency lending built on top of Ethereum smart contracts.  Our first testnet release is the Dharma CLI -- a command line tool that makes it easy to:
@@ -17,6 +22,8 @@
 See [installation instructions](#installation) below to give it a try, and check out the Dharma Protocol [White Paper](https://dharma.io/whitepaper) for more extensive information on the specifics of the protocol.  
 
 The Dharma CLI runs on a private Ethereum Testnet spun up specifically for demonstration purposes.  However, _nothing_ about the protocol or implementation requires usage of permissioned or private chains, and we intend on moving the implementation to a public chain in the near future.  
+
+This is highly experimental, alpha-stage **~mAd~SciEncE~**, so any and all bug reports, uncompromising feedback, and issue reports are welcome.  
 
 ### Table of Contents
 1. [Installation](#installation)
@@ -59,7 +66,7 @@ For example, one could write a decision engine that bids on loans on the basis o
 
 ```javascript
 const RISK_TO_INTEREST_RATIO = 0.8;
-const MAXIMUM_DEFAULT_RISK
+const MAXIMUM_DEFAULT_RISK = 0.5;
 
 class DecisionEngine {
   constructor(web3) {
@@ -67,18 +74,49 @@ class DecisionEngine {
   }
 
   async decide(loan) {
-    if (loan.defaulRisk)
+    if (loan.defaultRisk.gt(MAXIMUM_DEFAULT_RISK))
+      return false;
+
     return {
-      amount: new this.web3.BigNumber(2*(10**18)),
-      minInterestRate: new this.web3.BigNumber(0.23*(10**18))
+      amount: loan.principal,
+      minInterestRate: loan.defaultRisk.times(RISK_TO_INTEREST_RATIO)
     }
   }
 }
 ```
 
-For more specifics on how to write a decision engine, check out the documentation
+Or, alternatively, one could write a decision engine that bids on loans on the basis current macro interest rates, benchmark data from existing online lenders, the Pisces horoscope on any given day -- really _anything_.
 
-This is highly experimental, alpha-stage **~mAd~SciEncE~**, so any and all bug reports, uncompromising feedback, and issue reports are welcome.   
+For more specifics on how to write a decision engine, check out the [decision engine documentation](#decision-engine-documentation).
+
+##### For everything else...
+
+
+```bash
+$ dharma faucet
+```
+
+Opens up a wizard for requesting free testnet ether from Dharma's faucet.
+
+```bash
+$ dharma init <path>
+```
+
+Creates an example decision engine at the given path
+
+```bash
+$ dharma wallet
+```
+
+Opens up a wizard for managing your funds, sending test ether to friends,
+and making loan repayments.
+
+```bash
+$ dharma authenticate <authToken>
+```
+
+Saves an auth token locally for future use.  This allows you to solicit attestations from Dharma Labs Inc. and, in turn, access credit on the Dharma (see [Overview](#overview) onwards).
+
 
 #### Overview
 Loans in the Dharma Protocol can be thought of as miniature, borrower-initiated ICO's -- each loan is codified as a crowdfunding contract with attached metadata for loan terms, interest rates, and miscellaneous parameters.  The smart contract serves as a vehicle for crowdfunding the loan, storing loan terms & parameters, distributing repayments to investors on a pro-rated basis according to each investor's individual contribution, and tracking borrower defaults and delinquencies.
