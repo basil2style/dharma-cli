@@ -138,11 +138,10 @@ var CLI = function () {
         var amount = void 0;
         while (!amount) {
           var _response = await _inquirer2.default.prompt([_prompts.WalletFlow.enterAmount]);
-          var respondedAmount = this.web3.toWei(_response.amount, 'ether');
-          if (balance.lte(respondedAmount)) {
+          if (balance.lte(_response.amount)) {
             console.log("Your balance is too low :(");
           } else {
-            amount = respondedAmount;
+            amount = this.web3.toWei(_response.amount, 'ether');
           }
         }
 
@@ -157,7 +156,8 @@ var CLI = function () {
             process.exit(1);
           } else {
             console.log("Transaction successfully broadcasted!");
-            console.log("Transaction: https://ropsten.etherscan.io/tx/" + result);
+            console.log("Transaction: " + result);
+            process.exit(0);
           }
         });
       } else if (menu.choice === 'Make Loan Repayment') {

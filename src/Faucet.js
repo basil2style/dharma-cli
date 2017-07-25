@@ -41,8 +41,9 @@ var Faucet = function () {
         amount: amount
       });
 
+      var response = void 0;
       try {
-        var _response = await (0, _requestPromise2.default)(params);
+        response = await (0, _requestPromise2.default)(params);
       } catch (res) {
         if ('error' in res.error) {
           switch (res.error.error) {
