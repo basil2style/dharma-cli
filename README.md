@@ -2,11 +2,16 @@
 
 > [Dharma](https://dharma.io) is a protocol for unsecured, peer-to-peer cryptocurrency lending built on top of Ethereum smart contracts.  Our first testnet release is the Dharma CLI -- a command line tool that makes it easy to:
 1. **Access a programmatic line of crypto credit from the command line in under 5 minutes**
-![Borrower Experience Gif](https://s3-us-west-2.amazonaws.com/dharma-cli-gifs/BorrowerCLIFast.gif)
+
+<p align="center">
+  <img src="https://s3-us-west-2.amazonaws.com/dharma-cli-gifs/BorrowerCLIFast.gif" />
+</p>
 
 2. **Build bots that auto-invest in a portfolio of loans under hyper-customizable, programmable criteria**
 
-    ![Borrower Experience Gif](https://s3-us-west-2.amazonaws.com/dharma-cli-gifs/InvestorCLIFast.gif)
+<p align="center">
+  <img src="https://s3-us-west-2.amazonaws.com/dharma-cli-gifs/InvestorCLIFast.gif" />
+</p>
 
 
 See [installation instructions](#installation) below to give it a try, and check out the Dharma Protocol [White Paper](https://dharma.io/whitepaper) for more extensive information on the specifics of the protocol.  
@@ -19,8 +24,6 @@ The Dharma CLI runs on a private Ethereum Testnet spun up specifically for demon
 2. [Overview](#overview)
 3. [How It Works](#how-it-works)
 4. [Decision Engine Documentation](#decision-engine)
-5. _(TODO) Terms Schema_
-6. _(TODO) Attestation Schema_
 5. Future Work
 
 
