@@ -22,7 +22,7 @@ var logStyle = {
   top: '60%',
   left: 0,
   width: '30%',
-  height: '30%',
+  height: '40%',
   label: 'Logs',
   border: {
     type: 'line',

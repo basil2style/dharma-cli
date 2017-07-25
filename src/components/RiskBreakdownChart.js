@@ -18,7 +18,7 @@ var barStyle = {
   top: '60%',
   left: '30%',
   width: '40%',
-  height: '30%',
+  height: '40%',
   label: 'Default Risk Breakdown (\u039E)',
   border: {
     type: 'line',

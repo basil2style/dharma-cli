@@ -14,7 +14,7 @@ var boxStyle = {
   top: '60%',
   left: '70%',
   width: '30%',
-  height: '30%',
+  height: '40%',
   label: 'Total Cash',
   border: {
     type: 'line',
