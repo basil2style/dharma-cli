@@ -276,8 +276,7 @@ class Loan extends RedeemableERC20 {
 
   async getState(nextBlock=false) {
     const truffleContract = await LoanContract.instantiate(this.web3);
-    const contract = this.web3.eth.contract(truffleContract.abi)
-      .at(truffleContract.address)
+    const contract = truffleContract.contract;
 
     let blockNumber;
     if (nextBlock) {

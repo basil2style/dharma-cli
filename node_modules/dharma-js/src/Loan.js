@@ -560,7 +560,7 @@ var Loan = function (_RedeemableERC) {
 
               case 2:
                 truffleContract = _context11.sent;
-                contract = this.web3.eth.contract(truffleContract.abi).at(truffleContract.address);
+                contract = truffleContract.contract;
                 blockNumber = void 0;
 
                 if (!nextBlock) {
