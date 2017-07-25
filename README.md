@@ -265,7 +265,7 @@ An object with the following keys comprising the RAA's ECDSA signature of a stri
 ```
 **Returns**
 
-`BigNumber` - A BigNumber instance representing the length of the loan's auction period, in blocks.  See [Auction Mechanics](#auction-mechanics) for more information.
+`BigNumber` - A BigNumber instance representing the length of the loan's auction period, in blocks.
 
 ---
 
@@ -274,7 +274,7 @@ An object with the following keys comprising the RAA's ECDSA signature of a stri
 ```
 **Returns**
 
-`BigNumber` - A BigNumber instance representing the length of the loan's review period, in blocks.  See [Auction Mechanics](#auction-mechanics) for more information.
+`BigNumber` - A BigNumber instance representing the length of the loan's review period, in blocks.
 
 ___
 
@@ -315,6 +315,8 @@ ____
 **Returns**
 
 `BigNumber` - The number of payment periods in the entire loan term  (i.e. if the entire term of the loan is 2 months and payments are expected every two weeks, `terms.periodType = 'weekly'`, `terms.periodLength = 2`, and `terms.termLength = 4`)
+
+___
 
 ```javascript
   terms.compounded
