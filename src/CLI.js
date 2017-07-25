@@ -261,8 +261,10 @@ var CLI = function () {
         loader.stop(true);
         if (err.type === 'RejectionError') {
           console.error('Sorry -- your loan request has been denied.  Please try' + " again later.");
-          process.exit(1);
+        } else {
+          console.log(err);
         }
+        process.exit(1);
       }
 
       // If borrower's balance is too low to deploy loan request, request deployment

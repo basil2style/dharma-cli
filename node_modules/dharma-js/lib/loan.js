@@ -285,8 +285,9 @@ class Loan extends RedeemableERC20 {
       blockNumber += 1;
     }
 
+    const uuid = this.uuid;
     return new Promise(function(resolve, reject) {
-      contract.getState.call(this.uuid, blockNumber, (err, state) => {
+      contract.getState.call(uuid, blockNumber, (err, state) => {
         if (err) reject(err);
         else resolve(state);
       });

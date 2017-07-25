@@ -124,6 +124,7 @@ var Borrower = function () {
       }
 
       var loan = await this.dharma.loans.create(response);
+
       await loan.verifyAttestation();
 
       return loan;
