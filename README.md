@@ -31,7 +31,6 @@ This is highly experimental, alpha-stage **\~mAd\~SciEncE\~**, so any and all bu
 2. [Overview](#overview)
 3. [How It Works](#how-it-works)
 4. [Decision Engine Documentation](#decision-engine)
-5. Future Work
 
 
 ### Installation
@@ -119,11 +118,11 @@ Saves an auth token locally for future use.  This allows you to solicit attestat
 
 
 ## Overview
-Loans in the Dharma Protocol can be thought of as miniature, borrower-initiated ICO's -- each loan is codified as a crowdfunding contract with attached metadata for loan terms, interest rates, and miscellaneous parameters.  The smart contract serves as a vehicle for crowdfunding the loan, storing loan terms & parameters, distributing repayments to investors on a pro-rated basis according to each investor's individual contribution, and tracking borrower defaults and delinquencies.
+Loans in the Dharma Protocol can be thought of as **miniature, borrower-initiated ICO's** -- each loan is codified as a crowdfunding contract with attached metadata for loan terms, interest rates, and miscellaneous parameters.  The smart contract serves as a vehicle for crowdfunding the loan, storing loan terms & parameters, distributing repayments to investors on a pro-rated basis according to each investor's individual contribution, and tracking borrower defaults and delinquencies.
 
-When an investor contributes to a loan's crowdfund, they receive ERC20 tokens representing their ownership and rights to future cash flows in the loans.  As such, loan tokens can be easily combined and repackaged into smart contracts representing virtually any tranched derivative asset.  Moreover, loan tokens are as transferrable as any other digital asset, meaning they can (in theory) be bought and sold on exchanges.
+When an investor contributes to a loan's crowdfund, they receive ERC20 tokens representing their ownership and rights to future cash flows in the loans.  As such, loan tokens can be easily combined and repackaged into smart contracts representing **virtually _any_ tranched derivative debt instrument**.  Moreover, loan tokens are as transferrable as any other digital asset, meaning they can (in theory) be bought and sold on exchanges.
 
-Credit risk assessment and identity verification is performed by trusted, centralized third parties known as _Risk Assessment Attestors_ (RAAs).  For a pre-defined fee that is codified into the loan contract, RAAs use whatever means are at their disposal to assess a borrower's creditworthiness and cryptographically sign a statement predicting the borrower's likelihood of default.  In theory, market forces should gravitate loan volume towards those RAAs that produce better default risk predictions than others, given that a loan's performance can easily be audited ex post facto on chain.  Dharma Labs Inc. currently acts as the sole RAA of the protocol, but, in the future, we plan on developing decentralized mechanisms for authenticating other RAAs into the system.
+Credit risk assessment and identity verification is performed by trusted, centralized third parties known as _Risk Assessment Attestors_ (RAAs).  For a pre-defined fee that is codified into the loan contract, RAAs use whatever means are at their disposal to assess a borrower's creditworthiness and cryptographically sign a statement predicting the borrower's likelihood of default.  In theory, market forces _should_ gravitate loan volume towards those RAAs that produce better default risk predictions than others, given that a loan's performance can easily be audited ex post facto on chain.  **Dharma Labs Inc. currently acts as the sole RAA of the protocol, but, in the future, we plan on developing decentralized mechanisms for authenticating other RAAs into the system.**
 
 
 ## How It Works
@@ -134,7 +133,7 @@ Loans in the Dharma Protocol can be thought of as simple crowdfunding contracts 
 3. The terms of the loan
 4. Parameters around the timeline of the auction (i.e. the length of the auction in blocks)
 
-Then, a fixed amount of time (denominated in blocks) is allotted for an auction period, in which investors can submit bids on the contract asserting their desired interest rates.  Bidding consists of sending the contract a deposit equal to the maximum amount of ether the lender is willing to invest in the contract, and specifying the minimum interest rate the lender is willing to receive for that amount. Once the auction period is complete, the borrower can submit to the contract any subset of the investors' bids whose total cash amount is equal to the desired principal + the RAA's pre-defined fee. The contract then assigns the loan an interest rate equal to the maximum of the accepted bids' interest rates and transfers the principal to the borrower.  Lenders are then allowed to withdraw the remainder and / or entirety of their previous bids from the contract.
+Then, a fixed amount of time (denominated in blocks) is allotted for an auction period, in which investors can submit bids on the contract asserting their desired interest rates.  Bidding consists of sending the contract a deposit equal to the maximum amount of ether the lender is willing to invest in the contract, and specifying the minimum interest rate the lender is willing to receive for that amount. Once the auction period is complete, the borrower has a pre-defined amount of time to either reject the given bids, or accept the bids by submitting to the contract any subset of the investors' bids whose total cash amount is equal to the desired principal + the RAA's pre-defined fee. The contract then assigns the loan an interest rate equal to the maximum of the accepted bids' interest rates and transfers the principal to the borrower.  Lenders are then allowed to withdraw the remainder and / or entirety of their previous bids from the contract.
 
 Borrower repayments are made directly to the smart contract, which automatically distributes payouts to the investors on a pro-rata basis according to each investor's individual contribution.
 
