@@ -62,6 +62,7 @@ var Borrower = function () {
       var response = void 0;
       try {
         response = await (0, _requestPromise2.default)(params);
+        console.log(response);
       } catch (err) {
         if (err.name === 'StatusCodeError') {
           switch (err.response.body.error) {

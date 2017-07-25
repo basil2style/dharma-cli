@@ -48,7 +48,7 @@ var addressLabelStyle = {
   },
   top: '50%-1',
   left: 'center',
-  content: 'Ropsten Testnet Address:'
+  content: 'Dharma Testnet Address:'
 };
 
 var addressTextStyle = {

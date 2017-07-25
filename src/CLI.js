@@ -228,7 +228,9 @@ var CLI = function () {
       // Request attestation from the Risk Assessment Attestor (i.e. Dharma)
       try {
         attestation = await this.borrower.requestAttestation(address, amount);
+        console.log(attestation);
       } catch (err) {
+        console.log(err);
         loader.stop(true);
         if (err.type === 'AuthenticationError') {
           var answer = await _inquirer2.default.prompt([_prompts.AuthenticateFlow.start]);
