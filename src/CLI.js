@@ -280,6 +280,8 @@ var CLI = function () {
         }
       }
 
+      console.log("\nBeginning the loan request process.  Hold tight -- this should take approximately 5 minutes\n");
+
       loader.setSpinnerTitle("Deploying loan request for " + response.amount + ' ether.');
 
       var onAuctionStart = function onAuctionStart(err, result) {
@@ -290,6 +292,7 @@ var CLI = function () {
 
       try {
         await this.borrower.broadcastLoanRequest(loan, onAuctionStart, onReviewStart);
+        loader.setSpinnerTitle("Loan request broadcasted.  Waiting for transaction to be mined...");
       } catch (err) {
         loader.stop(true);
         console.log(err);
@@ -321,10 +324,11 @@ var CLI = function () {
           var decorator = new _LoanDecorator2.default(loan);
 
           console.log("Your loan request of " + decorator.principal() + " ether has been" + " approved at a " + decorator.interestRate() + " simple interest rate.");
+          console.log("Your last and only repayment date will be in 7 days, and you" + " will owe " + decorator.totalOwed());
           var answer = await _inquirer2.default.prompt([_prompts.BorrowFlow.reviewLoanTerms]);
 
           if (answer.choice === 'Accept') {
-            loader.setSpinnerTitle("Accepting loan terms");
+            loader.setSpinnerTitle("Broadcasting terms acceptance...");
             loader.start();
 
             await _this.borrower.acceptLoanTerms(loan, bestBidSet.bids);
@@ -334,7 +338,7 @@ var CLI = function () {
 
             process.exit();
           } else {
-            loader.setSpinnerTitle("Rejecting loan terms");
+            loader.setSpinnerTitle("Broadcasting terms rejection...");
             loader.start();
 
             await loan.rejectBids();

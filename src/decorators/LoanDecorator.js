@@ -42,6 +42,12 @@ var LoanDecorator = function () {
       return "\u039E" + principalDecimal.toString();
     }
   }, {
+    key: "totalOwed",
+    value: function totalOwed() {
+      var totalOwedEther = this.loan.servicing.totalOwed().div(decimals).toFixed(2);
+      return "\u039E" + totalOwedEther.toString();
+    }
+  }, {
     key: "defaultRisk",
     value: function defaultRisk() {
       var defaultRiskDecimal = this.loan.defaultRisk.div(decimals).times(100).toFixed(2);

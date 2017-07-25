@@ -78,6 +78,10 @@ var Investor = function () {
 
       this.store = store;
 
+      process.on('uncaughtException', function (err) {
+        this.store.dispatch((0, _actions.log)('error', err.toString()));
+      });
+
       this.store.dispatch((0, _actions.log)('info', "Loading portfolio..."));
 
       try {
@@ -139,7 +143,7 @@ var Investor = function () {
 
           await loan.bid(bid.amount, bid.bidder, bid.minInterestRate);
         } catch (err) {
-          console.log(err);
+          this.store.dispatch((0, _actions.log)('error', err.toString()));
           return;
         }
 
@@ -189,7 +193,12 @@ var Investor = function () {
       var loan = investment.loan;
       var refundWithdrawn = await loan.isRefundWithdrawn(investment.investor);
       if (!refundWithdrawn) {
-        await loan.withdrawInvestment({ from: investment.investor });
+        this.store.dispatch((0, _actions.log)('info', 'Withdrawing refunded remainder of bid amount'));
+        try {
+          await loan.withdrawInvestment({ from: investment.investor });
+        } catch (err) {
+          this.store.dispatch((0, _actions.log)('error', err.toString()));
+        }
       }
 
       await this.redeemValueIfPossible(uuid);
@@ -260,8 +269,12 @@ var Investor = function () {
 
       var tokenBalance = await loan.balanceOf(bid.bidder);
       if (tokenBalance.lt(bid.amount)) {
-        await loan.withdrawInvestment({ from: bid.bidder });
         this.store.dispatch((0, _actions.log)('info', 'Withdrawing refunded remainder of bid amount'));
+        try {
+          await loan.withdrawInvestment({ from: bid.bidder });
+        } catch (err) {
+          this.store.dispatch((0, _actions.log)('error', err.toString()));
+        }
       }
 
       var investment = new _Investment2.default(loan);
@@ -289,8 +302,12 @@ var Investor = function () {
       this.store.dispatch((0, _actions.log)('info', 'Bid for loan ' + bid.loan.uuid + 'rejected.'));
       var refundWithdrawn = await bid.loan.isRefundWithdrawn(bid.bidder);
       if (!refundWithdrawn) {
-        await bid.loan.withdrawInvestment({ from: bid.bidder });
         this.store.dispatch((0, _actions.log)('info', 'Withdrawing refunded bid amount.'));
+        try {
+          await loan.withdrawInvestment({ from: bid.bidder });
+        } catch (err) {
+          this.store.dispatch((0, _actions.log)('error', err.toString()));
+        }
       }
     }
   }, {
@@ -402,7 +419,12 @@ var Investor = function () {
     key: 'collect',
     value: async function collect(uuid) {
       var investment = this.portfolio.investments[uuid];
-      await investment.loan.redeemValue(investment.investor);
+      this.store.dispatch((0, _actions.log)('info', 'Redeeming repaid value from loan ' + uuid));
+      try {
+        await investment.loan.redeemValue(investment.investor);
+      } catch (err) {
+        this.store.dispatch((0, _actions.log)('error', err.toString()));
+      }
     }
   }], [{
     key: 'fromPath',
