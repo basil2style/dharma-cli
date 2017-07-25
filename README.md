@@ -25,7 +25,7 @@ The Dharma CLI runs on a private Ethereum Testnet spun up specifically for demon
 
 This is highly experimental, alpha-stage **~mAd~SciEncE~**, so any and all bug reports, uncompromising feedback, and issue reports are welcome.  
 
-### Table of Contents
+## Table of Contents
 1. [Installation](#installation)
 2. [Usage](#usage)
 2. [Overview](#overview)
@@ -34,7 +34,7 @@ This is highly experimental, alpha-stage **~mAd~SciEncE~**, so any and all bug r
 5. Future Work
 
 
-#### Installation
+### Installation
 The Dharma CLI runs in a node environment.  In order to install the CLI, run the following in your command line:
 ```bash
 # The following two commands are necessary in order to install scrypt for the first time
@@ -46,16 +46,16 @@ $ npm install -g dharma-cli
 
 If you run into installation errors related to the `scrypt` package, make sure you have `g++` installed and configured locally.  If you run into any other installation snags, please open up an issue and I'd be happy to take a look and assist you.
 
-#### Usage
+### Usage
 
-##### For borrowers...
+#### For borrowers...
 ```bash
 $ dharma borrow
 ```
 
 The CLI will guide you through a wizard that in which you will generate a client-side wallet, verify your identity, and then decide on the loan parameters you desire.
 
-##### For lenders...
+#### For lenders...
 ```bash
 $ dharma invest <decisionEnginePath>
 ```
@@ -85,11 +85,11 @@ class DecisionEngine {
 }
 ```
 
-Or, alternatively, one could write a decision engine that bids on loans on the basis current macro interest rates, benchmark data from existing online lenders, the Pisces horoscope on any given day -- really _anything_.
+Or, alternatively, one could write a decision engine that bids on loans on the basis of current macro interest rates, benchmark data from existing online lenders, the Pisces horoscope on any given day -- really _anything_.
 
 For more specifics on how to write a decision engine, check out the [decision engine documentation](#decision-engine-documentation).
 
-##### For everything else...
+#### For everything else...
 
 
 ```bash
@@ -115,10 +115,10 @@ and making loan repayments.
 $ dharma authenticate <authToken>
 ```
 
-Saves an auth token locally for future use.  This allows you to solicit attestations from Dharma Labs Inc. and, in turn, access credit on the Dharma (see [Overview](#overview) onwards).
+Saves an auth token locally for future use.  This allows you to solicit attestations from Dharma Labs Inc. and, in turn, access credit on the Dharma Network (see [Overview](#overview) onwards).
 
 
-#### Overview
+### Overview
 Loans in the Dharma Protocol can be thought of as miniature, borrower-initiated ICO's -- each loan is codified as a crowdfunding contract with attached metadata for loan terms, interest rates, and miscellaneous parameters.  The smart contract serves as a vehicle for crowdfunding the loan, storing loan terms & parameters, distributing repayments to investors on a pro-rated basis according to each investor's individual contribution, and tracking borrower defaults and delinquencies.
 
 When an investor contributes to a loan's crowdfund, they receive ERC20 tokens representing their ownership and rights to future cash flows in the loans.  As such, loan tokens can be easily combined and repackaged into smart contracts representing virtually any tranched derivative asset.  Moreover, loan tokens are as transferrable as any other digital asset, meaning they can (in theory) be bought and sold on exchanges.
@@ -126,7 +126,7 @@ When an investor contributes to a loan's crowdfund, they receive ERC20 tokens re
 Credit risk assessment and identity verification is performed by trusted, centralized third parties known as _Risk Assessment Attestors_ (RAAs).  For a pre-defined fee that is codified into the loan contract, RAAs use whatever means are at their disposal to assess a borrower's creditworthiness and cryptographically sign a statement predicting the borrower's likelihood of default.  In theory, market forces should gravitate loan volume towards those RAAs that produce better default risk predictions than others, given that a loan's performance can easily be audited ex post facto on chain.  Dharma Labs Inc. currently acts as the sole RAA of the protocol, but, in the future, we plan on developing decentralized mechanisms for authenticating other RAAs into the system.
 
 
-#### How It Works
+### How It Works
 
 Loans in the Dharma Protocol can be thought of as simple crowdfunding contracts with attached lending-specific metadata.  In practice, loans aren't represented by individual smart contracts, but rather, for gas cost-saving reasons, stored within a meta-contract that manages loan mechanics in the entire Dharma Loan network.  If a borrower wants a loan in the Dharma Protocol, they first must solicit a signed attestation from an RAA, at which point they create a loan request contract within the larger meta-contract with the following included:
 1. The RAA's signed attestation
