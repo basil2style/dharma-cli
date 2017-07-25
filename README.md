@@ -1,4 +1,5 @@
- <center><h1>Dharma Command Line Interface</h1></center>
+<h1 align="center">Dharma Command Line Interface</h1>
+
 > [Dharma](https://dharma.io) is a protocol for unsecured, peer-to-peer cryptocurrency lending built on top of Ethereum smart contracts.  Our first testnet release is the Dharma CLI -- a command line tool that makes it easy to:
 1. **Access a programmatic line of crypto credit from the command line in under 5 minutes**
 ![Borrower Experience Gif](https://s3-us-west-2.amazonaws.com/dharma-cli-gifs/BorrowerCLIFast.gif)
