@@ -416,7 +416,7 @@ var Loan = function (_RedeemableERC) {
     key: 'acceptBids',
     value: function () {
       var _ref9 = _asyncToGenerator(regeneratorRuntime.mark(function _callee9(bids, options) {
-        var contract, bidSchema, totalBidValueAccepted, i, state, web3;
+        var contract, bidSchema, totalBidValueAccepted, i, web3;
         return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
             switch (_context9.prev = _context9.next) {
@@ -450,32 +450,27 @@ var Loan = function (_RedeemableERC) {
                 throw new Error('Total value of bids accepted should equal the desired ' + "principal, plus the attestor's fee");
 
               case 10:
-                _context9.next = 12;
-                return this.getState(true);
 
-              case 12:
-                state = _context9.sent;
+                // TODO: Fix issue around truffle-contract bugs when using call methods
+                //    w/ non-default block numbers
+                // const state = await this.getState(true);
+                //
+                // if (!state.equals(Constants.REVIEW_STATE)) {
+                //   throw new Error('Bids can only be accepted during the review period.');
+                // }
 
-                if (state.equals(_Constants2.default.REVIEW_STATE)) {
-                  _context9.next = 15;
-                  break;
-                }
-
-                throw new Error('Bids can only be accepted during the review period.');
-
-              case 15:
                 web3 = this.web3;
-                _context9.next = 18;
+                _context9.next = 13;
                 return contract.acceptBids(this.uuid, bids.map(function (bid) {
                   return bid.bidder;
                 }), bids.map(function (bid) {
                   return web3.toHex(bid.amount);
                 }), options);
 
-              case 18:
+              case 13:
                 return _context9.abrupt('return', _context9.sent);
 
-              case 19:
+              case 14:
               case 'end':
                 return _context9.stop();
             }
@@ -493,7 +488,7 @@ var Loan = function (_RedeemableERC) {
     key: 'rejectBids',
     value: function () {
       var _ref10 = _asyncToGenerator(regeneratorRuntime.mark(function _callee10(options) {
-        var contract, state;
+        var contract;
         return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
@@ -511,27 +506,21 @@ var Loan = function (_RedeemableERC) {
                   options.gas = UNDEFINED_GAS_ALLOWANCE;
                 }
 
+                // TODO: Fix issue around truffle-contract bugs when using call methods
+                //    w/ non-default block numbers
+                // const state = await this.getState(true);
+                //
+                // if (!state.equals(Constants.REVIEW_STATE)) {
+                //   throw new Error('Bids can only be rejected during the review period.');
+                // }
+
                 _context10.next = 7;
-                return this.getState(true);
-
-              case 7:
-                state = _context10.sent;
-
-                if (state.equals(_Constants2.default.REVIEW_STATE)) {
-                  _context10.next = 10;
-                  break;
-                }
-
-                throw new Error('Bids can only be rejected during the review period.');
-
-              case 10:
-                _context10.next = 12;
                 return contract.rejectBids(this.uuid, options);
 
-              case 12:
+              case 7:
                 return _context10.abrupt('return', _context10.sent);
 
-              case 13:
+              case 8:
               case 'end':
                 return _context10.stop();
             }
@@ -550,7 +539,7 @@ var Loan = function (_RedeemableERC) {
     value: function () {
       var _ref11 = _asyncToGenerator(regeneratorRuntime.mark(function _callee11() {
         var nextBlock = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var truffleContract, contract, blockNumber, uuid;
+        var truffleContract, contract, blockNumber, uuid, state;
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
             switch (_context11.prev = _context11.next) {
@@ -578,13 +567,18 @@ var Loan = function (_RedeemableERC) {
 
               case 10:
                 uuid = this.uuid;
-                return _context11.abrupt('return', new Promise(function (resolve, reject) {
+                _context11.next = 13;
+                return new Promise(function (resolve, reject) {
                   contract.getState.call(uuid, blockNumber, function (err, state) {
                     if (err) reject(err);else resolve(state);
                   });
-                }));
+                });
 
-              case 12:
+              case 13:
+                state = _context11.sent;
+                return _context11.abrupt('return', state);
+
+              case 15:
               case 'end':
                 return _context11.stop();
             }
@@ -636,7 +630,7 @@ var Loan = function (_RedeemableERC) {
     key: 'repay',
     value: function () {
       var _ref13 = _asyncToGenerator(regeneratorRuntime.mark(function _callee13(amount, options) {
-        var contract, state;
+        var contract;
         return regeneratorRuntime.wrap(function _callee13$(_context13) {
           while (1) {
             switch (_context13.prev = _context13.next) {
@@ -652,23 +646,16 @@ var Loan = function (_RedeemableERC) {
 
                 options.value = amount;
 
-                _context13.next = 7;
-                return this.getState(true);
+                // TODO: Fix issue around truffle-contract bugs when using call methods
+                //    w/ non-default block numbers
+                // const state = await this.getState(true);
+                //
+                // if (!state.equals(Constants.ACCEPTED_STATE))
+                //   throw new Error('Repayments cannot be made until loan term has begun.');
 
-              case 7:
-                state = _context13.sent;
-
-                if (state.equals(_Constants2.default.ACCEPTED_STATE)) {
-                  _context13.next = 10;
-                  break;
-                }
-
-                throw new Error('Repayments cannot be made until loan term has begun.');
-
-              case 10:
                 return _context13.abrupt('return', contract.periodicRepayment(this.uuid, options));
 
-              case 11:
+              case 6:
               case 'end':
                 return _context13.stop();
             }
@@ -686,7 +673,7 @@ var Loan = function (_RedeemableERC) {
     key: 'withdrawInvestment',
     value: function () {
       var _ref14 = _asyncToGenerator(regeneratorRuntime.mark(function _callee14(options, callback) {
-        var contract, state;
+        var contract;
         return regeneratorRuntime.wrap(function _callee14$(_context14) {
           while (1) {
             switch (_context14.prev = _context14.next) {
@@ -700,23 +687,19 @@ var Loan = function (_RedeemableERC) {
 
                 options = options || { from: this.web3.eth.defaultAccount };
 
-                _context14.next = 6;
-                return this.getState(true);
+                // TODO: Fix issue around truffle-contract bugs when using call methods
+                //    w/ non-default block numbers
+                // const state = await this.getState(true);
+                // 
+                // if (!state.equals(Constants.REJECTED_STATE) &&
+                //       !state.equals(Constants.ACCEPTED_STATE)) {
+                //   throw new Error('Bids can only be withdrawn once the loan has been ' +
+                //     'accepted or rejected.');
+                // }
 
-              case 6:
-                state = _context14.sent;
-
-                if (!(!state.equals(_Constants2.default.REJECTED_STATE) && !state.equals(_Constants2.default.ACCEPTED_STATE))) {
-                  _context14.next = 9;
-                  break;
-                }
-
-                throw new Error('Bids can only be withdrawn once the loan has been ' + 'accepted or rejected.');
-
-              case 9:
                 return _context14.abrupt('return', contract.withdrawInvestment(this.uuid, options));
 
-              case 10:
+              case 5:
               case 'end':
                 return _context14.stop();
             }

@@ -239,11 +239,13 @@ class Loan extends RedeemableERC20 {
       throw new Error('Total value of bids accepted should equal the desired ' +
         "principal, plus the attestor's fee");
 
-    const state = await this.getState(true);
-
-    if (!state.equals(Constants.REVIEW_STATE)) {
-      throw new Error('Bids can only be accepted during the review period.');
-    }
+    // TODO: Fix issue around truffle-contract bugs when using call methods
+    //    w/ non-default block numbers
+    // const state = await this.getState(true);
+    //
+    // if (!state.equals(Constants.REVIEW_STATE)) {
+    //   throw new Error('Bids can only be accepted during the review period.');
+    // }
 
     const web3 = this.web3;
 
@@ -265,11 +267,13 @@ class Loan extends RedeemableERC20 {
       options.gas = UNDEFINED_GAS_ALLOWANCE;
     }
 
-    const state = await this.getState(true);
-
-    if (!state.equals(Constants.REVIEW_STATE)) {
-      throw new Error('Bids can only be rejected during the review period.');
-    }
+    // TODO: Fix issue around truffle-contract bugs when using call methods
+    //    w/ non-default block numbers
+    // const state = await this.getState(true);
+    //
+    // if (!state.equals(Constants.REVIEW_STATE)) {
+    //   throw new Error('Bids can only be rejected during the review period.');
+    // }
 
     return await contract.rejectBids(this.uuid, options)
   }
@@ -285,12 +289,14 @@ class Loan extends RedeemableERC20 {
     }
 
     const uuid = this.uuid;
-    return new Promise(function(resolve, reject) {
+    const state = await new Promise(function(resolve, reject) {
       contract.getState.call(uuid, blockNumber, (err, state) => {
         if (err) reject(err);
         else resolve(state);
       });
     });
+
+    return state;
   }
 
   async getInterestRate() {
@@ -307,10 +313,12 @@ class Loan extends RedeemableERC20 {
 
     options.value = amount;
 
-    const state = await this.getState(true);
-
-    if (!state.equals(Constants.ACCEPTED_STATE))
-      throw new Error('Repayments cannot be made until loan term has begun.');
+    // TODO: Fix issue around truffle-contract bugs when using call methods
+    //    w/ non-default block numbers
+    // const state = await this.getState(true);
+    //
+    // if (!state.equals(Constants.ACCEPTED_STATE))
+    //   throw new Error('Repayments cannot be made until loan term has begun.');
 
     return contract.periodicRepayment(this.uuid, options);
   }
@@ -321,13 +329,16 @@ class Loan extends RedeemableERC20 {
     options = options ||
       { from: this.web3.eth.defaultAccount };
 
-    const state = await this.getState(true);
 
-    if (!state.equals(Constants.REJECTED_STATE) &&
-          !state.equals(Constants.ACCEPTED_STATE)) {
-      throw new Error('Bids can only be withdrawn once the loan has been ' +
-        'accepted or rejected.');
-    }
+    // TODO: Fix issue around truffle-contract bugs when using call methods
+    //    w/ non-default block numbers
+    // const state = await this.getState(true);
+    // 
+    // if (!state.equals(Constants.REJECTED_STATE) &&
+    //       !state.equals(Constants.ACCEPTED_STATE)) {
+    //   throw new Error('Bids can only be withdrawn once the loan has been ' +
+    //     'accepted or rejected.');
+    // }
 
     return contract.withdrawInvestment(this.uuid, options);
   }
