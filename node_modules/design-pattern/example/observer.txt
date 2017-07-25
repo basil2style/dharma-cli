@@ -1,0 +1,2 @@
+Observer(1) context { data: 'data' }
+Observer(2) context { data: 'data' }

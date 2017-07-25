@@ -1,0 +1,54 @@
+[prototypeBuilder] created phonePrototype instanceSerial=20150000001 with standardContext= { manufacturer: 'DreamPhoneProduction',
+  serial: '20150000001',
+  model: 'DreamPhone',
+  simCard: 'nano',
+  width: 400,
+  height: 600,
+  color: 'white' }
+[prototypeBuilder] created phonePrototype instanceSerial=20150000002 with standardContext= { manufacturer: 'DreamPhoneProduction',
+  serial: '20150000002',
+  model: 'DreamPhone',
+  simCard: 'nano',
+  width: 400,
+  height: 600,
+  color: 'white' }
+[prototypeBuilder] created phonePrototype instanceSerial=20150000003 with standardContext= { manufacturer: 'DreamPhoneProduction',
+  serial: '20150000003',
+  model: 'DreamPhone',
+  simCard: 'nano',
+  width: 400,
+  height: 600,
+  color: 'white' }
+[20150000001] specifications() :  { serial: '20150000001',
+  model: 'DreamPhone',
+  manufacturer: 'DreamPhoneProduction',
+  simCard: 'nano',
+  weight: 129,
+  width: 138,
+  height: 67 }
+[validPhone 20150000001] installSimCard() : Sim card (type=nano) has been installed
+[validPhone 20150000001] listAvailableApps() : availableApps =  { apps: 
+   { app001: 'NewsReaderApp',
+     app002: 'CameraApp',
+     app003: 'CalculatorApp' } }
+[validPhone 20150000001] installApp() : NewsReaderApp has been installed
+[validPhone 20150000001] uninstallApp() : NewsReaderApp has been uninstalled
+[20150000002] specifications() :  { serial: '20150000002',
+  model: 'DreamPhone',
+  manufacturer: 'DreamPhoneProduction',
+  simCard: 'nano',
+  weight: 129,
+  width: 138,
+  height: 67 }
+[invalidSimCard 20150000002] installSimCard() :   Sim card type = micro is not supported.
+[20150000003] specifications() :  { serial: '20150000003',
+  model: 'DreamPhone',
+  manufacturer: 'DreamPhoneProduction',
+  simCard: 'nano',
+  weight: 129,
+  width: 138,
+  height: 67 }
+[invalidAppStoreUser 20150000003] installSimCard() : Sim card (type=nano) has been installed
+[invalidAppStoreUser 20150000003] listAvailableApps() : appStoreUserId = unknown is not a valid account id.
+[invalidAppStoreUser 20150000003] installApp() : appStoreUserId = unknown is not a valid account id.
+[invalidAppStoreUser 20150000003] uninstallApp() : appStoreUserId = unknown is not a valid account id.

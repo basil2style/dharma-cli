@@ -1,0 +1,10 @@
+DEBUG[06-11|19:19:04] Reloaded keystore contents               accounts=1
+DEBUG[06-11|19:19:04] Reloaded keystore contents               accounts=1
+INFO [06-11|19:19:04] Starting peer-to-peer node               instance=Geth/v1.6.5-stable-cf87713d/darwin-amd64/go1.8.3
+INFO [06-11|19:19:04] Allocated cache and file handles         database=/Users/nadavhollander/Library/Ethereum/testnet/geth/chaindata cache=128 handles=1024
+Fatal: Error starting protocol stack: resource temporarily unavailable
+DEBUG[06-11|19:19:16] Reloaded keystore contents               accounts=1
+DEBUG[06-11|19:19:16] Reloaded keystore contents               accounts=1
+INFO [06-11|19:19:16] Starting peer-to-peer node               instance=Geth/v1.6.5-stable-cf87713d/darwin-amd64/go1.8.3
+INFO [06-11|19:19:16] Allocated cache and file handles         database=/Users/nadavhollander/Library/Ethereum/testnet/geth/chaindata cache=128 handles=1024
+Fatal: Error starting protocol stack: resource temporarily unavailable

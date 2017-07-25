@@ -10,7 +10,7 @@ var _web = require('web3');
 
 var _web2 = _interopRequireDefault(_web);
 
-var _dharmaJs = require('../modules/dharma-js');
+var _dharmaJs = require('dharma-js');
 
 var _dharmaJs2 = _interopRequireDefault(_dharmaJs);
 

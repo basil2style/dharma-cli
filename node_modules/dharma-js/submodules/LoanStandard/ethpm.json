@@ -1,0 +1,17 @@
+{
+  "package_name": "dharma-loan",
+  "version": "0.1.0",
+  "description": "Simple unsecured loan implementation per the Dharma Lending Protocol",
+  "authors": [
+    "Nadav Hollander <nadav@dharma.io>"
+  ],
+  "keywords": [
+    "ethereum",
+    "lending",
+    "dharma",
+    "credit",
+    "loans",
+    "borrow"
+  ],
+  "license": "MIT"
+}

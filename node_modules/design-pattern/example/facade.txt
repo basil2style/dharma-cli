@@ -1,0 +1,13 @@
+ModuleA pre { param1: 10, param2: 20, param3: 30, param4: 40 }
+ModuleA op1 { data: 10 }
+ModuleA op2 { data: 20 }
+ModuleA op3 { data: 30 }
+ModuleA op4 { data: 40 }
+ModuleA op5 { data: 100 }
+ModuleA post { param1: 10, param2: 20, param3: 30, param4: 40 }
+ModuleB pre { param1: 'A', param2: 'B', param3: 'C' }
+ModuleB op1 { data: 'A' }
+ModuleB op2 { data: 'B' }
+ModuleB op3 { data: 'C' }
+ModuleB op4 { data: 'ABC' }
+ModuleB post { param1: 'A', param2: 'B', param3: 'C' }
