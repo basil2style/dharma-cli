@@ -1,4 +1,4 @@
-# <center>Dharma Command Line Interface</center>
+ <center><h1>Dharma Command Line Interface</h1></center>
 > [Dharma](https://dharma.io) is a protocol for unsecured, peer-to-peer cryptocurrency lending built on top of Ethereum smart contracts.  Our first testnet release is the Dharma CLI -- a command line tool that makes it easy to:
 1. **Access a programmatic line of crypto credit from the command line in under 5 minutes**
 ![Borrower Experience Gif](https://s3-us-west-2.amazonaws.com/dharma-cli-gifs/BorrowerCLIFast.gif)
@@ -51,7 +51,26 @@ $ dharma invest <decisionEnginePath>
 
 The CLI will start up a daemon that automatically bids on loans in the Dharma network according to the criteria stipulated by the Javascript file pointed to by `decisionEnginePath`.  The CLI will open a dashboard that allows investors to get a live snapshot of their portfolio over time.
 
-For example, I could write a decision engine that
+For example, one could write a decision engine that bids on loans on the basis of a simple, fixed risk-to-interest ratio:
+
+```javascript
+const RISK_TO_INTEREST_RATIO = 0.8;
+const MAXIMUM_DEFAULT_RISK
+
+class DecisionEngine {
+  constructor(web3) {
+    this.web3 = web3;
+  }
+
+  async decide(loan) {
+    if (loan.defaulRisk)
+    return {
+      amount: new this.web3.BigNumber(2*(10**18)),
+      minInterestRate: new this.web3.BigNumber(0.23*(10**18))
+    }
+  }
+}
+```
 
 For more specifics on how to write a decision engine, check out the documentation
 
